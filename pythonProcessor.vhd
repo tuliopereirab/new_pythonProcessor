@@ -84,7 +84,7 @@ component control is
 	generic
 	(
 		DATA_WIDTH_IN	    : natural	:= 8;
-		ULA_CTRL_WIDTH_IN	: natural	:= 2;
+		ULA_CTRL_WIDTH_IN	: natural	:= 4;
         ONE_GENERIC_IN      : natural   := 1
 	);
 	port
