@@ -66,7 +66,7 @@ begin
 					 s_plusZeroD2 when (sel_Ula="0101") else
 					 s_plusOne when (sel_Ula="0110") else
 					 s_lessOne when (sel_Ula="0111") else
-					 s_plusTwo when (sel_Ula="1000")
+					 s_plusTwo when (sel_Ula="1000") else
 					 s_not when (sel_Ula="1100") else
 					 s_and when (sel_Ula="1101") else
 					 s_or when (sel_Ula="1110") else
