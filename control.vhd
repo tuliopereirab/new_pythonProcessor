@@ -850,7 +850,7 @@ begin
             when sf7 =>
 				ctrl_regTos <= '0';
 				sel_MuxOp1 <= "00";
-				sel_MuxOp2 <= "01";
+				sel_MuxOp2 <= "00";
 				sel_Ula <= "0110";
 				sel_muxPc <= '0';
 				-- -------------------------
@@ -879,7 +879,7 @@ begin
 				-- -------------------------
 				ctrl_regTos <= '0';
 				sel_MuxOp1 <= "00";
-				sel_MuxOp2 <= "01";
+				sel_MuxOp2 <= "00";
 				sel_Ula <= "0110";
 				sel_muxPc <= '0';
 				ctrl_memExt <= '0';
