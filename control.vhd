@@ -1429,9 +1429,9 @@ begin
 				if(sEntrada_regArg="00011000") then		-- igual
 					sel_Ula <= "1001";
 				elsif(sEntrada_regArg="00011010") then	-- maior que
-					s_Ula <= "1011";
+					sel_Ula <= "1011";
 				else 									-- menor que
-					s_Ula <= "1010";
+					sel_Ula <= "1010";
 				end if;
 				ctrl_regPilha <= "00";
 				sel_MuxOp1 <= "11";
