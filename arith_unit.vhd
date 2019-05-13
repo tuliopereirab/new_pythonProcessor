@@ -24,9 +24,9 @@ entity arith_unit is
 end entity;
 
 architecture arc_ula of arith_unit is
-signal signal_zero  : integer   := 0;
-signal signal_one	: integer	:= 1;
-signal signal_two	: integer	:= 2;
+-- signal signal_zero  : integer   := 0;
+-- signal signal_one	: integer	:= 1;
+-- signal signal_two	: integer	:= 2;
 signal s_add, s_sub, saida_interna	: std_logic_vector((DATA_WIDTH_IN-1) downto 0);
 signal s_plusZeroD1, s_plusZeroD2, s_plusOne, s_lessOne, s_plusTwo	: std_logic_vector((DATA_WIDTH_IN-1) downto 0);
 signal s_not, s_and, s_or, s_xor	: std_logic_vector((DATA_WIDTH_IN-1) downto 0);
@@ -41,9 +41,9 @@ begin
 
 	s_plusZeroD1 <= data_in_1;
 	s_plusZeroD2 <= data_in_2;
-	s_plusOne <= data_in_2 + std_logic_vector(to_unsigned(signal_one, DATA_WIDTH_IN));
-	s_lessOne <= data_in_2 - std_logic_vector(to_unsigned(signal_one, DATA_WIDTH_IN));
-	s_plusTwo <= data_in_2 + std_logic_vector(to_unsigned(signal_two, DATA_WIDTH_IN));
+	s_plusOne <= data_in_2 + std_logic_vector(to_unsigned(1, DATA_WIDTH_IN));
+	s_lessOne <= data_in_2 - std_logic_vector(to_unsigned(1, DATA_WIDTH_IN));
+	s_plusTwo <= data_in_2 + std_logic_vector(to_unsigned(2, DATA_WIDTH_IN));
 
 	s_not <= NOT data_in_1;
 	s_and <= data_in_1 AND data_in_2;
@@ -71,14 +71,14 @@ begin
 					 s_and when (sel_Ula="1101") else
 					 s_or when (sel_Ula="1110") else
 					 s_xor when (sel_Ula="1111") else
-					 std_logic_vector(to_unsigned(signal_zero, DATA_WIDTH_IN));
+					 std_logic_vector(to_unsigned(0, DATA_WIDTH_IN));
 	saida_comparacao <= s_igual when (sel_Ula="1001") else
 	                    s_menor when (sel_Ula="1010") else
 	                    s_maior when (sel_Ula="1011") else
-	                    std_logic_vector(to_unsigned(signal_zero, ONE_GENERIC_IN));
-	saida_overflow <= "1" when ((sel_Ula="010") AND (s_mult((DATA_WIDTH_IN-1) downto 8)/=std_logic_vector(to_unsigned(signal_zero, DATA_WIDTH_IN/3)))) else		-- controle de overflow para multiplicação
+	                    std_logic_vector(to_unsigned(0, ONE_GENERIC_IN));
+	saida_overflow <= "1" when ((sel_Ula="010") AND (s_mult((DATA_WIDTH_IN-1) downto 8)/=std_logic_vector(to_unsigned(0, DATA_WIDTH_IN/3)))) else		-- controle de overflow para multiplicação
 					  "1" when ((data_in_2>data_in_1) AND (sel_Ula="001")) else       -- controle de overflow para subtração
-					  std_logic_vector(to_unsigned(signal_zero, ONE_GENERIC_IN));
+					  std_logic_vector(to_unsigned(0, ONE_GENERIC_IN));
 
 	---------------------------------------------------------------
 

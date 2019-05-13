@@ -25,8 +25,8 @@ end entity;
 architecture arc_pythonProcessor of pythonProcessor is
 ------------------------------------------------------- SIGNALS ---------------------------------
 --extra signals
-signal signal_zero  : integer   := 0;
-signal signal_one   : integer   := 1;
+-- signal signal_zero  : integer   := 0;
+-- signal signal_one   : integer   := 1;
 signal zero_std_vector, one_std_vector  : std_logic_vector((ADDR_MAX_WIDTH-1) downto 0);
 -- control
 signal reset_ctrl   : std_logic_vector((ONE_GENERIC-1) downto 0);
@@ -51,7 +51,7 @@ signal w_pilhaFuncao_out, w_pilhaRetorno_out    : std_logic_vector((ADDR_WIDTH-1
 signal w_regArg_in, w_regArg_out    : std_logic_vector((DATA_WIDTH-1) downto 0);
 -- regComp
 signal w_regComp_out    : std_logic_vector((ONE_GENERIC-1) downto 0);
-signal w_regDataReturn_in, w_regDataReturn_out  : std_logic_vector((DATA_WIDTH-1) downto 0);
+signal w_regDataReturn_out  : std_logic_vector((DATA_WIDTH-1) downto 0);
 -- regEnd
 signal w_regEnd_out     : std_logic_vector((ADDR_WIDTH-1) downto 0);
 -- regInstr
@@ -293,8 +293,8 @@ end component;
 -------------------------------------------------------------------------------------------------
 begin
     overflow_geral <= w_regOverflow_out;
-    zero_std_vector <= std_logic_vector(to_unsigned(signal_zero, ADDR_MAX_WIDTH));
-    one_std_vector <= std_logic_vector(to_unsigned(signal_one, ADDR_MAX_WIDTH));
+    zero_std_vector <= std_logic_vector(to_unsigned(0, ADDR_MAX_WIDTH));
+    one_std_vector <= std_logic_vector(to_unsigned(1, ADDR_MAX_WIDTH));
 
     regArg   : reg_1_1
         generic map
@@ -335,7 +335,7 @@ begin
         (
             clk => clk_geral,
             ctrl_in => regDataReturn_ctrl,
-            data_in => w_regDataReturn_in,
+            data_in => w_regPilha_out,
             data_out => w_regDataReturn_out
         );
 

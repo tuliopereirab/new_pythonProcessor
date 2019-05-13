@@ -20,10 +20,10 @@ end entity;
 
 architecture arc of adderSubtractor is
 signal s_add, s_sub	: std_logic_vector((DATA_WIDTH_IN-1) downto 0);
-signal one  : integer   := 1;
+-- signal one  : integer   := 1;
 begin
-	s_add		<= data_in + std_logic_vector(to_unsigned(one, DATA_WIDTH_IN));
-	s_sub		<= data_in - std_logic_vector(to_unsigned(one, DATA_WIDTH_IN));
+	s_add		<= data_in + std_logic_vector(to_unsigned(1, DATA_WIDTH_IN));
+	s_sub		<= data_in - std_logic_vector(to_unsigned(1, DATA_WIDTH_IN));
 
 
 

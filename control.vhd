@@ -59,8 +59,8 @@ architecture arc_control of control is
 -- lc (LOAD_CONST), lf (LOAD_FAST), sf (STORE_FAST), co (COMPARE_OP), ja (JUMP_ABSOLUTE), jf (JUMP_FORWARD), b (BINARY_), pj_stay (FICA!), pj_jump (PULA!), pj_end (FINALIZA)
 type state_type is (first, AUX, cf1, cf2, cf3, cf4, cf5, cf6, cf7, lc1, lc2, lc3, lc4, lf1, lf2, lf3, lf4, lf5, lf6, lf7, lf8, b1, b2, b3, b4, b5_1, b5_2, b5_3, b5_4, b6, b7, b8, sf1, sf2, sf3, sf4, sf5, sf6, sf7, sf8, co1, co2, co3, co4, co5, co6_1, co6_2, co6_3, co7, co8, co9, co10, co11, jf1, jf2, jf3, jf4, rv1, rv2, rv3, rv4, rv5, ja1, ja2, ja3, ja4, pj_FICA, pj_PULA1, pj_PULA2, pj_PULA3, pj_FIM);
 signal atual 	: state_type;
-signal signal_one	: integer	:= 1;
-signal signal_zero	: integer := 0;
+-- signal signal_one	: integer	:= 1;
+-- signal signal_zero	: integer := 0;
 signal verif_muxOp1, verif_muxOp2	: std_logic_vector(1 downto 0);
 --signal sEntrada_regComp, sEntrada_regOverflow	: std_logic;
 signal sEntrada_regInstr, sEntrada_regArg 	: std_logic_vector(7 downto 0);
@@ -74,7 +74,7 @@ begin
 
 	process(clk, reset_in, entrada_regComp, sEntrada_regArg, sEntrada_regInstr, entrada_regOverflow)
 	begin
-		if(reset_in=std_logic_vector(to_unsigned(signal_one, ONE_GENERIC_IN))) then
+		if(reset_in=std_logic_vector(to_unsigned(1, ONE_GENERIC_IN))) then
 			atual <= first;
 		elsif(rising_edge(clk)) then
 			case atual is
@@ -91,13 +91,13 @@ begin
 						when "00000010" =>		-- COMPARE_OP
 							atual <= co1;
 						when "00110000" =>         -- POP_JUMP_IF_FALSE
-							if(entrada_regComp=std_logic_vector(to_unsigned(signal_zero,  ONE_GENERIC_IN))) then
+							if(entrada_regComp=std_logic_vector(to_unsigned(0,  ONE_GENERIC_IN))) then
 								atual <= pj_PULA1;
 							else
 								atual <= pj_FICA;
 							end if;
 						when "00110001" =>		-- POP_JUMP_IF_TRUE
-							if(entrada_regComp=std_logic_vector(to_unsigned(signal_one, ONE_GENERIC_IN))) then
+							if(entrada_regComp=std_logic_vector(to_unsigned(1, ONE_GENERIC_IN))) then
 								atual <= pj_PULA1;
 							else
 								atual <= pj_FICA;

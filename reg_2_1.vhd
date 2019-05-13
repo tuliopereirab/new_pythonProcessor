@@ -33,16 +33,16 @@ begin
 end regJump;
 
 architecture arc_reg of reg_2_1 is
-signal reset_sig    : integer   := 0;
-signal comp_1		: integer 	:= 1;
+-- signal reset_sig    : integer   := 0;
+-- signal comp_1		: integer 	:= 1;
 signal comp_Used	: std_logic_vector((DATA_WIDTH_IN_2-1) downto 0);
 begin
-	comp_Used <= std_logic_vector(to_unsigned(comp_1, DATA_WIDTH_IN_2));
+	comp_Used <= std_logic_vector(to_unsigned(1, DATA_WIDTH_IN_2));
     process(clk)
     begin
         if(rising_edge(clk)) then
             if(data_in_2=comp_Used) then
-                data_out <= std_logic_vector(to_unsigned(reset_sig, DATA_WIDTH_OUT));
+                data_out <= std_logic_vector(to_unsigned(0, DATA_WIDTH_OUT));
             elsif(ctrl_in='1') then
                 data_out <= data_in_1((DATA_WIDTH_OUT-1) downto 0);
             end if;
