@@ -1123,7 +1123,15 @@ begin
 				-- -------------------------
 				ctrl_regOp2 <= '0';
 				sel_MuxPilha <= "00";
-				sel_Ula <= "0000";
+				if(sEntrada_regInstr="00100000") then		-- sum
+					sel_Ula <= "0000";
+				elsif(sEntrada_regInstr="00100001") then	-- subtract
+					sel_Ula <= "0001";
+				elsif(sEntrada_regInstr="00100010") then	-- multiply
+					sel_Ula <= "0010";
+				else 								-- divide
+					sel_Ula <= "0011";
+				end if;
 				sel_MuxOp1 <= "11";
 				sel_MuxOp2 <= "11";
 				ctrl_regOp1 <= '0';
@@ -1418,7 +1426,13 @@ begin
 				ctrl_regComp <= '1';
 				-- -------------------------
 				ctrl_regOp2 <= '0';
-				sel_Ula <= "1010";
+				if(sEntrada_regArg="00011000") then		-- igual
+					sel_Ula <= "1001";
+				elsif(sEntrada_regArg="00011010") then	-- maior que
+					s_Ula <= "1011";
+				else 									-- menor que
+					s_Ula <= "1010";
+				end if;
 				ctrl_regPilha <= "00";
 				sel_MuxOp1 <= "11";
 				sel_MuxOp2 <= "11";
