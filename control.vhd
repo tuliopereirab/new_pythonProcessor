@@ -6,22 +6,21 @@ entity control is
 	generic
 	(
 		DATA_WIDTH_IN		: natural	:= 8;
-		ULA_CTRL_WIDTH_IN	: natural	:= 4;
-        ONE_GENERIC_IN      : natural   := 1
+		ULA_CTRL_WIDTH_IN	: natural	:= 4
 	);
 	port
     (
         -- basics
         clk						: in std_logic;
-        reset_in    			: in std_logic_vector((ONE_GENERIC_IN-1) downto 0);
+        reset_in    			: in std_logic;
         -- from registers
         entrada_regInstr		: in std_logic_vector((DATA_WIDTH_IN-1) downto 0);
         entrada_regArg			: in std_logic_vector((DATA_WIDTH_IN-1) downto 0);
-		entrada_regComp		    : in std_logic_vector((ONE_GENERIC_IN-1) downto 0);
-		entrada_regOverflow	    : in std_logic_vector((ONE_GENERIC_IN-1) downto 0);
+		entrada_regComp		    : in std_logic;
+		entrada_regOverflow	    : in std_logic;
         -- ===================================================
         -- basics
-        saida_reset 			: out std_logic_vector((ONE_GENERIC_IN-1) downto 0);
+        saida_reset 			: out std_logic;
         -- registers
 		ctrl_regDataReturn	    : out std_logic;
 		ctrl_pilhaRetorno		: out std_logic;
@@ -74,7 +73,7 @@ begin
 
 	process(clk, reset_in, entrada_regComp, sEntrada_regArg, sEntrada_regInstr, entrada_regOverflow)
 	begin
-		if(reset_in=std_logic_vector(to_unsigned(1, ONE_GENERIC_IN))) then
+		if(reset_in='1') then
 			atual <= first;
 		elsif(rising_edge(clk)) then
 			case atual is
@@ -91,13 +90,13 @@ begin
 						when "00000010" =>		-- COMPARE_OP
 							atual <= co1;
 						when "00110000" =>         -- POP_JUMP_IF_FALSE
-							if(entrada_regComp=std_logic_vector(to_unsigned(0,  ONE_GENERIC_IN))) then
+							if(entrada_regComp='0') then
 								atual <= pj_PULA1;
 							else
 								atual <= pj_FICA;
 							end if;
 						when "00110001" =>		-- POP_JUMP_IF_TRUE
-							if(entrada_regComp=std_logic_vector(to_unsigned(1, ONE_GENERIC_IN))) then
+							if(entrada_regComp='1') then
 								atual <= pj_PULA1;
 							else
 								atual <= pj_FICA;

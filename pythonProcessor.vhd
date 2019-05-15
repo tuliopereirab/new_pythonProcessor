@@ -6,7 +6,6 @@ entity pythonProcessor is
     generic
     (
         DATA_WIDTH              : natural   := 8;   -- data width used in for all normal data (saved in the stack or in the normal memory)
-        ONE_GENERIC             : natural   := 1;   -- used for registers with 1 bit of data width
         ADDR_WIDTH              : natural   := 12;   -- address width used to define the normal memories size (memInstr, pilha, memExt)
         ADDR_WIDTH_FUNCTIONS    : natural   := 8;   -- address width used for special memories (pilhaRetorno and pilhaFuncao)
         INSTRUCTION_WIDTH       : natural   := 16;  -- width of the instructions (8 bits for arguments and 8 bits for opCode)
@@ -16,9 +15,9 @@ entity pythonProcessor is
 
     port
     (
-        clk_geral       : in std_logic;
-        reset_geral     : in std_logic_vector((ONE_GENERIC-1) downto 0);
-        overflow_geral  : out std_logic_vector((ONE_GENERIC-1) downto 0)
+        osc_clk         : in std_logic;
+        reset_n         : in std_logic;
+        led             : out std_logic_vector(3 downto 0)
     );
 end entity;
 
@@ -28,8 +27,9 @@ architecture arc_pythonProcessor of pythonProcessor is
 -- signal signal_zero  : integer   := 0;
 -- signal signal_one   : integer   := 1;
 signal zero_std_vector, one_std_vector  : std_logic_vector((ADDR_MAX_WIDTH-1) downto 0);
+signal clk_geral, reset_geral   : std_logic;
 -- control
-signal reset_ctrl   : std_logic_vector((ONE_GENERIC-1) downto 0);
+signal reset_ctrl   : std_logic;
 signal adder_ctrl   : std_logic;
 signal regArg_ctrl, regComp_ctrl, regEnd_ctrl, regInstr_ctrl, regOp1_ctrl, regOp2_ctrl, muxPc_ctrl, muxTos_ctrl  : std_logic;
 signal regOverflow_ctrl, regJump_ctrl, regPc_ctrl, regTos_ctrl, regTosFuncao_ctrl, regDataReturn_ctrl : std_logic;
@@ -50,7 +50,7 @@ signal w_pilhaFuncao_out, w_pilhaRetorno_out    : std_logic_vector((ADDR_WIDTH-1
 -- regArg
 signal w_regArg_in, w_regArg_out    : std_logic_vector((DATA_WIDTH-1) downto 0);
 -- regComp
-signal w_regComp_out    : std_logic_vector((ONE_GENERIC-1) downto 0);
+signal w_regComp_out    : std_logic;
 signal w_regDataReturn_out  : std_logic_vector((DATA_WIDTH-1) downto 0);
 -- regEnd
 signal w_regEnd_out     : std_logic_vector((ADDR_WIDTH-1) downto 0);
@@ -63,7 +63,7 @@ signal w_regOp1_out : std_logic_vector((ADDR_MAX_WIDTH-1) downto 0);
 -- regOp2
 signal w_regOp2_out : std_logic_vector((ADDR_MAX_WIDTH-1) downto 0);
 -- regOverflow
-signal w_regOverflow_in, w_regOverflow_out  : std_logic_vector((ONE_GENERIC-1) downto 0);
+signal w_regOverflow_in, w_regOverflow_out  : std_logic;
 
 -- regPilha
 signal w_regPilha_out   : std_logic_vector((DATA_WIDTH-1) downto 0);
@@ -77,29 +77,28 @@ signal w_regTos_in   : std_logic_vector((ADDR_MAX_WIDTH-1) downto 0);
 signal w_regTosFuncao_in, w_regTosFuncao_out    : std_logic_vector((DATA_WIDTH-1) downto 0);
 -- ula
 signal w_ula_out_result : std_logic_vector((ADDR_MAX_WIDTH-1) downto 0);
-signal w_ula_out_comp   : std_logic_vector((ONE_GENERIC-1) downto 0);
+signal w_ula_out_comp   : std_logic;
 signal w_ula_in_op1, w_ula_in_op2   : std_logic_vector((ADDR_MAX_WIDTH-1) downto 0);
 ------------------------------------------------------- COMPONENTS ------------------------------
 component control is
 	generic
 	(
 		DATA_WIDTH_IN	    : natural	:= 8;
-		ULA_CTRL_WIDTH_IN	: natural	:= 4;
-        ONE_GENERIC_IN      : natural   := 1
+		ULA_CTRL_WIDTH_IN	: natural	:= 4
 	);
 	port
     (
         -- basics
         clk						: in std_logic;
-        reset_in    			: in std_logic_vector((ONE_GENERIC_IN-1) downto 0);
+        reset_in    			: in std_logic;
         -- from registers
         entrada_regInstr		: in std_logic_vector((DATA_WIDTH-1) downto 0);
         entrada_regArg			: in std_logic_vector((DATA_WIDTH-1) downto 0);
-		entrada_regComp		    : in std_logic_vector((ONE_GENERIC-1) downto 0);
-		entrada_regOverflow	    : in std_logic_vector((ONE_GENERIC-1) downto 0);
+		entrada_regComp		    : in std_logic;
+		entrada_regOverflow	    : in std_logic;
         -- ===================================================
         -- basics
-        saida_reset 			: out std_logic_vector((ONE_GENERIC-1) downto 0);
+        saida_reset 			: out std_logic;
         -- registers
 		ctrl_regDataReturn	    : out std_logic;
 		ctrl_pilhaRetorno		: out std_logic;
@@ -148,6 +147,16 @@ component reg_1_1 is
 	);
 end component;
 
+component reg_1_1_1bit is
+	port
+	(
+		clk					  : in std_logic;
+		ctrl_in	              : in std_logic;
+		data_in	              : in std_logic;
+		data_out              : out std_logic
+	);
+end component;
+
 component reg_2_1 is
 	generic
 	(
@@ -162,6 +171,23 @@ component reg_2_1 is
 		ctrl_in           : in std_logic;
 		data_in_1         : in std_logic_vector((DATA_WIDTH_IN_1-1) downto 0);
 		data_in_2         : in std_logic_vector((DATA_WIDTH_IN_2-1) downto 0);
+		data_out          : out std_logic_vector((DATA_WIDTH_OUT-1) downto 0)
+	);
+end component;
+
+component reg_2_1_reset is
+	generic
+	(
+		DATA_WIDTH_IN_1   	: natural   := 8;
+        DATA_WIDTH_OUT      : natural   := 16
+	);
+
+	port
+	(
+		clk               : in std_logic;
+		ctrl_in           : in std_logic;
+		reset_in          : in std_logic;
+		data_in_1         : in std_logic_vector((DATA_WIDTH_IN_1-1) downto 0);
 		data_out          : out std_logic_vector((DATA_WIDTH_OUT-1) downto 0)
 	);
 end component;
@@ -275,8 +301,7 @@ component arith_unit is
 	generic
 	(
 		DATA_WIDTH_IN	        : natural := 24;
-        ULA_CTRL_WIDTH_IN       : natural := 3;
-        ONE_GENERIC_IN          : natural := 1
+        ULA_CTRL_WIDTH_IN       : natural := 3
 	);
 
 	port
@@ -285,14 +310,17 @@ component arith_unit is
 		data_in_1			: in std_logic_vector((DATA_WIDTH_IN-1) downto 0);
 		data_in_2			: in std_logic_vector((DATA_WIDTH_IN-1) downto 0);
 		out_result		    : out std_logic_vector((DATA_WIDTH_IN-1) downto 0);
-		out_comp		    : out std_logic_vector((ONE_GENERIC_IN-1) downto 0);
-		out_overflow	    : out std_logic_vector((ONE_GENERIC_IN-1) downto 0)
+		out_comp		    : out std_logic;
+		out_overflow	    : out std_logic
 	);
 end component;
 
 -------------------------------------------------------------------------------------------------
 begin
-    overflow_geral <= w_regOverflow_out;
+    clk_geral <= osc_clk;
+    reset_geral <= reset_n;
+    led(0) <= w_regOverflow_out;
+    led(3 downto 1) <= "000";
     zero_std_vector <= std_logic_vector(to_unsigned(0, ADDR_MAX_WIDTH));
     one_std_vector <= std_logic_vector(to_unsigned(1, ADDR_MAX_WIDTH));
 
@@ -309,20 +337,6 @@ begin
             ctrl_in => regArg_ctrl,
             data_in => w_regArg_in,
             data_out => w_regArg_out
-        );
-
-    regComp : reg_1_1
-        generic map
-        (
-            DATA_WIDTH_IN => ONE_GENERIC,
-            DATA_WIDTH_OUT => ONE_GENERIC
-        )
-        port map
-        (
-            clk => clk_geral,
-            ctrl_in => regComp_ctrl,
-            data_in => w_ula_out_comp,
-            data_out => w_regComp_out
         );
 
     regDataReturn   : reg_1_1
@@ -395,12 +409,9 @@ begin
             data_out => w_regOp2_out
         );
 
-    regOverflow    : reg_1_1
-        generic map
-        (
-            DATA_WIDTH_IN => ONE_GENERIC,
-            DATA_WIDTH_OUT => ONE_GENERIC
-        )
+--=========================================================
+
+    regOverflow    : reg_1_1_1bit
         port map
         (
             clk => clk_geral,
@@ -409,8 +420,17 @@ begin
             data_out => w_regOverflow_out
         );
 
+
+    regComp : reg_1_1_1bit
+        port map
+        (
+            clk => clk_geral,
+            ctrl_in => regComp_ctrl,
+            data_in => w_ula_out_comp,
+            data_out => w_regComp_out
+        );
 --=========================================================
-    regJump     : entity work.reg_2_1(regJump)
+    regJump     : reg_2_1
         generic map
         (
             DATA_WIDTH_IN_1 => DATA_WIDTH,      -- coming from argument register
@@ -426,51 +446,50 @@ begin
             data_out => w_regJump_out
         );
 
-    regPc     : entity work.reg_2_1(arc_reg)
+--=========================================================
+
+    regPc     : reg_2_1_reset
         generic map
         (
             DATA_WIDTH_IN_1 => ADDR_MAX_WIDTH,    -- receive from ula out (24 bits)
-            DATA_WIDTH_IN_2 => ONE_GENERIC,       -- reset
             DATA_WIDTH_OUT => ADDR_WIDTH          -- only pass forward the length of the address
         )
         port map
         (
             clk => clk_geral,
             ctrl_in => regPc_ctrl,
+            reset_in => reset_ctrl,
             data_in_1 => w_regPc_in,
-            data_in_2 => reset_ctrl,
             data_out => w_regPc_out
         );
 
-    regTos     : entity work.reg_2_1(arc_reg)
+    regTos     : reg_2_1_reset
         generic map
         (
             DATA_WIDTH_IN_1 => ADDR_MAX_WIDTH,   -- ula result
-            DATA_WIDTH_IN_2 => ONE_GENERIC,  -- reset
             DATA_WIDTH_OUT => ADDR_WIDTH       -- stack address length
         )
         port map
         (
             clk => clk_geral,
             ctrl_in => regTos_ctrl,
+            reset_in => reset_ctrl,
             data_in_1 => w_regTos_in,
-            data_in_2 => reset_ctrl,
             data_out => w_regTos_out
         );
 
-    regTosFuncao     : entity work.reg_2_1(arc_reg)
+    regTosFuncao     : reg_2_1_reset
         generic map
         (
             DATA_WIDTH_IN_1 => DATA_WIDTH,       -- it has its own alu
-            DATA_WIDTH_IN_2 => ONE_GENERIC,
             DATA_WIDTH_OUT => DATA_WIDTH        -- same width from the input pin because already gets the data with the correct width
         )
         port map
         (
             clk => clk_geral,
             ctrl_in => regTosFuncao_ctrl,
+            reset_in => reset_ctrl,
             data_in_1 => w_regTosFuncao_in,
-            data_in_2 => reset_ctrl,
             data_out => w_regTosFuncao_out
         );
 
@@ -740,8 +759,7 @@ begin
         generic map
         (
             DATA_WIDTH_IN => ADDR_MAX_WIDTH,
-            ULA_CTRL_WIDTH_IN => ULA_CTRL_WIDTH,
-            ONE_GENERIC_IN => ONE_GENERIC
+            ULA_CTRL_WIDTH_IN => ULA_CTRL_WIDTH
         )
         port map
         (

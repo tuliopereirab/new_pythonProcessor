@@ -8,8 +8,7 @@ entity arith_unit is
 	generic
 	(
 		DATA_WIDTH_IN	        : natural := 24;
-        ULA_CTRL_WIDTH_IN       : natural := 4;
-        ONE_GENERIC_IN          : natural := 1
+        ULA_CTRL_WIDTH_IN       : natural := 4
 	);
 
 	port
@@ -18,8 +17,8 @@ entity arith_unit is
 		data_in_1			: in std_logic_vector((DATA_WIDTH_IN-1) downto 0);
 		data_in_2			: in std_logic_vector((DATA_WIDTH_IN-1) downto 0);
 		out_result		    : out std_logic_vector((DATA_WIDTH_IN-1) downto 0);
-		out_comp		    : out std_logic_vector((ONE_GENERIC_IN-1) downto 0);
-		out_overflow	    : out std_logic_vector((ONE_GENERIC_IN-1) downto 0)
+		out_comp		    : out std_logic;
+		out_overflow	    : out std_logic
 	);
 end entity;
 
@@ -30,8 +29,8 @@ architecture arc_ula of arith_unit is
 signal s_add, s_sub, saida_interna	: std_logic_vector((DATA_WIDTH_IN-1) downto 0);
 signal s_plusZeroD1, s_plusZeroD2, s_plusOne, s_lessOne, s_plusTwo	: std_logic_vector((DATA_WIDTH_IN-1) downto 0);
 signal s_not, s_and, s_or, s_xor	: std_logic_vector((DATA_WIDTH_IN-1) downto 0);
-signal saida_comparacao, saida_overflow	: std_logic_vector((ONE_GENERIC_IN-1) downto 0);
-signal s_igual, s_menor, s_maior  : std_logic_vector((ONE_GENERIC_IN-1) downto 0);
+signal saida_comparacao, saida_overflow	: std_logic;
+signal s_igual, s_menor, s_maior  : std_logic;
 signal s_mult, s_div 	: std_logic_vector(((DATA_WIDTH_IN*2)-1) downto 0); -- PARA MULTIPLIÇÃO, DOBRO DE DATA_WIDTH_IN
 begin
 	s_add		<= data_in_2 + data_in_1;
@@ -50,12 +49,12 @@ begin
 	s_or <= data_in_1 OR data_in_2;
 	s_xor <= data_in_1 XOR data_in_2;
 
-	s_igual <= "1" when (data_in_2=data_in_1) else
-	           "0";
-	s_menor <= "1" when (data_in_2<data_in_1) else
-	           "0";
-	s_maior <= "1" when (data_in_2>data_in_1) else
-	           "0";
+	s_igual <= '1' when (data_in_2=data_in_1) else
+	           '0';
+	s_menor <= '1' when (data_in_2<data_in_1) else
+	           '0';
+	s_maior <= '1' when (data_in_2>data_in_1) else
+	           '0';
 
 
 	saida_interna <= s_add when (sel_Ula="0000") else
@@ -75,10 +74,10 @@ begin
 	saida_comparacao <= s_igual when (sel_Ula="1001") else
 	                    s_menor when (sel_Ula="1010") else
 	                    s_maior when (sel_Ula="1011") else
-	                    std_logic_vector(to_unsigned(0, ONE_GENERIC_IN));
-	saida_overflow <= "1" when ((sel_Ula="010") AND (s_mult((DATA_WIDTH_IN-1) downto 8)/=std_logic_vector(to_unsigned(0, DATA_WIDTH_IN/3)))) else		-- controle de overflow para multiplicação
-					  "1" when ((data_in_2>data_in_1) AND (sel_Ula="001")) else       -- controle de overflow para subtração
-					  std_logic_vector(to_unsigned(0, ONE_GENERIC_IN));
+	                    '0';
+	saida_overflow <= '1' when ((sel_Ula="010") AND (s_mult((DATA_WIDTH_IN-1) downto 8)/=std_logic_vector(to_unsigned(0, DATA_WIDTH_IN/3)))) else		-- controle de overflow para multiplicação
+					  '1' when ((data_in_2>data_in_1) AND (sel_Ula="001")) else       -- controle de overflow para subtração
+					  '0';
 
 	---------------------------------------------------------------
 
