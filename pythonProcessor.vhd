@@ -83,8 +83,8 @@ signal w_ula_in_op1, w_ula_in_op2   : std_logic_vector((ADDR_MAX_WIDTH-1) downto
 component control is
 	generic
 	(
-		DATA_WIDTH_IN	    : natural	:= 8;
-		ULA_CTRL_WIDTH_IN	: natural	:= 4
+		DATA_WIDTH_IN	    : natural;
+		ULA_CTRL_WIDTH_IN	: natural
 	);
 	port
     (
@@ -134,8 +134,8 @@ end component;
 component reg_1_1 is
 	generic
 	(
-		DATA_WIDTH_IN	: natural	:= 16;
-        DATA_WIDTH_OUT  : natural   := 16
+		DATA_WIDTH_IN	: natural;
+        DATA_WIDTH_OUT  : natural
 	);
 
 	port
@@ -160,9 +160,9 @@ end component;
 component reg_2_1 is
 	generic
 	(
-		DATA_WIDTH_IN_1   	: natural   := 8;
-        DATA_WIDTH_IN_2     : natural   := 8;
-        DATA_WIDTH_OUT      : natural := 16
+		DATA_WIDTH_IN_1   	: natural;
+        DATA_WIDTH_IN_2     : natural;
+        DATA_WIDTH_OUT      : natural
 	);
 
 	port
@@ -178,8 +178,8 @@ end component;
 component reg_2_1_reset is
 	generic
 	(
-		DATA_WIDTH_IN_1   	: natural   := 8;
-        DATA_WIDTH_OUT      : natural   := 16
+		DATA_WIDTH_IN_1   	: natural;
+        DATA_WIDTH_OUT      : natural
 	);
 
 	port
@@ -195,8 +195,8 @@ end component;
 component reg_2_2 is
 	generic
 	(
-		DATA_WIDTH_IN_OUT_1	      : natural	:= 8; -- same size of read
-    	DATA_WIDTH_IN_OUT_2	      : natural	:= 8 -- same size for write
+		DATA_WIDTH_IN_OUT_1	      : natural; -- same size of read
+    	DATA_WIDTH_IN_OUT_2	      : natural -- same size for write
 
 	);
 
@@ -214,9 +214,9 @@ end component;
 component mux_2_1 is
     generic
     (
-        DATA_WIDTH_IN_1     : natural   := 8;
-        DATA_WIDTH_IN_2     : natural   := 8;
-        DATA_WIDTH_OUT      : natural   := 8
+        DATA_WIDTH_IN_1     : natural;
+        DATA_WIDTH_IN_2     : natural;
+        DATA_WIDTH_OUT      : natural
     );
     port
     (
@@ -230,11 +230,11 @@ end component;
 component mux_4_1 is
     generic
     (
-        DATA_WIDTH_IN_1     : natural   := 8;
-        DATA_WIDTH_IN_2     : natural   := 8;
-        DATA_WIDTH_IN_3     : natural   := 8;
-        DATA_WIDTH_IN_4     : natural   := 8;
-        DATA_WIDTH_OUT      : natural   := 8
+        DATA_WIDTH_IN_1     : natural;
+        DATA_WIDTH_IN_2     : natural;
+        DATA_WIDTH_IN_3     : natural;
+        DATA_WIDTH_IN_4     : natural;
+        DATA_WIDTH_OUT      : natural
     );
     port
     (
@@ -250,8 +250,8 @@ end component;
 component memory is
 	generic
 	(
-		DATA_WIDTH_IN	:	natural	:= 8;
-		ADDR_WIDTH_IN	:	natural	:= 16
+		DATA_WIDTH_IN	:	natural;
+		ADDR_WIDTH_IN	:	natural
 	);
 
 	port
@@ -267,9 +267,9 @@ end component;
 component instr_memory is
 	generic
 	(
-		INSTRUCTION_WIDTH_IN	: natural	:= 16;
-		ADDR_WIDTH_IN	: natural	:= 16;
-		DATA_WIDTH_IN	: natural	:= 8
+		INSTRUCTION_WIDTH_IN	: natural;
+		ADDR_WIDTH_IN	        : natural;
+		DATA_WIDTH_IN	        : natural
 	);
 
 	port
@@ -286,7 +286,7 @@ end component;
 component adderSubtractor is
 	generic
 	(
-		DATA_WIDTH_IN	: natural	:= 8
+		DATA_WIDTH_IN	: natural
 	);
 
 	port
@@ -300,8 +300,8 @@ end component;
 component arith_unit is
 	generic
 	(
-		DATA_WIDTH_IN	        : natural := 24;
-        ULA_CTRL_WIDTH_IN       : natural := 3
+		DATA_WIDTH_IN	        : natural;
+        ULA_CTRL_WIDTH_IN       : natural
 	);
 
 	port
