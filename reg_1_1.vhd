@@ -5,8 +5,8 @@ use ieee.numeric_std.all;
 entity reg_1_1 is
 	generic
 	(
-		DATA_WIDTH_IN	: natural	:= 16;
-		DATA_WIDTH_OUT	: natural	:= 16
+		DATA_WIDTH_IN	: natural;
+		DATA_WIDTH_OUT	: natural
 	);
 
 	port

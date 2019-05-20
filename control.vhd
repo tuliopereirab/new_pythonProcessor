@@ -5,8 +5,8 @@ use ieee.numeric_std.all;
 entity control is
 	generic
 	(
-		DATA_WIDTH_IN		: natural	:= 8;
-		ULA_CTRL_WIDTH_IN	: natural	:= 4
+		DATA_WIDTH_IN		: natural;
+		ULA_CTRL_WIDTH_IN	: natural
 	);
 	port
     (

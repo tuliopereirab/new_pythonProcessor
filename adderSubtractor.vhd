@@ -7,7 +7,7 @@ use ieee.std_logic_arith.all;
 entity adderSubtractor is
 	generic
 	(
-		DATA_WIDTH_IN	: natural	:= 8
+		DATA_WIDTH_IN	: natural
 	);
 
 	port

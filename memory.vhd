@@ -6,8 +6,8 @@ use ieee.numeric_std.all;
 entity memory is
 	generic
 	(
-		DATA_WIDTH_IN	:	natural	:= 8;
-		ADDR_WIDTH_IN	:	natural	:= 16
+		DATA_WIDTH_IN	:	natural;
+		ADDR_WIDTH_IN	:	natural
 	);
 
 	port

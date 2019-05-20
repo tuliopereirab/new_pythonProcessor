@@ -5,11 +5,11 @@ use ieee.numeric_std.all;
 entity mux_4_1 is
     generic
     (
-        DATA_WIDTH_IN_1     : natural   := 8;
-        DATA_WIDTH_IN_2     : natural   := 8;
-        DATA_WIDTH_IN_3     : natural   := 8;
-        DATA_WIDTH_IN_4     : natural   := 8;
-        DATA_WIDTH_OUT      : natural   := 8
+        DATA_WIDTH_IN_1     : natural;
+        DATA_WIDTH_IN_2     : natural;
+        DATA_WIDTH_IN_3     : natural;
+        DATA_WIDTH_IN_4     : natural;
+        DATA_WIDTH_OUT      : natural
     );
     port
     (

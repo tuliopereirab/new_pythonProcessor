@@ -5,8 +5,8 @@ use ieee.numeric_std.all;
 entity reg_2_1_reset is
 	generic
 	(
-		DATA_WIDTH_IN_1   	: natural   := 8;
-        DATA_WIDTH_OUT      : natural   := 16
+		DATA_WIDTH_IN_1   	: natural;
+        DATA_WIDTH_OUT      : natural
 	);
 
 	port

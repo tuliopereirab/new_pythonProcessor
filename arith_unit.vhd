@@ -7,8 +7,8 @@ use ieee.std_logic_arith.all;
 entity arith_unit is
 	generic
 	(
-		DATA_WIDTH_IN	        : natural := 24;
-        ULA_CTRL_WIDTH_IN       : natural := 4
+		DATA_WIDTH_IN	        : natural;
+        ULA_CTRL_WIDTH_IN       : natural
 	);
 
 	port

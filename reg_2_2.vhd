@@ -4,8 +4,8 @@ use ieee.std_logic_1164.all;
 entity reg_2_2 is
 	generic
 	(
-		DATA_WIDTH_IN_OUT_1	      : natural	:= 8; -- same size of read
-    	DATA_WIDTH_IN_OUT_2	      : natural	:= 8 -- same size for write
+		DATA_WIDTH_IN_OUT_1	      : natural; -- same size of read
+    	DATA_WIDTH_IN_OUT_2	      : natural -- same size for write
 
 	);
 
