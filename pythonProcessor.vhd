@@ -15,19 +15,21 @@ entity pythonProcessor is
 
     port
     (
-        osc_clk         : in std_logic;
-        reset_n         : in std_logic;
-        led             : out std_logic_vector(3 downto 0)
+        clk_geral                   : in std_logic;
+        reset_geral                 : in std_logic;
+        pilha_read_out              : out std_logic_vector((DATA_WIDTH-1) downto 0);
+        memExt_read_out             : out std_logic_vector((DATA_WIDTH-1) downto 0);
+        pilhaFuncao_read_out        : out std_logic_vector((ADDR_WIDTH-1) downto 0);
+        pilhaRetorno_read_out       : out std_logic_vector((ADDR_WIDTH-1) downto 0)
     );
 end entity;
 
-architecture arc_pythonProcessor of pythonProcessor is
+architecture arc of pythonProcessor is
 ------------------------------------------------------- SIGNALS ---------------------------------
 --extra signals
 -- signal signal_zero  : integer   := 0;
 -- signal signal_one   : integer   := 1;
 signal zero_std_vector, one_std_vector  : std_logic_vector((ADDR_MAX_WIDTH-1) downto 0);
-signal clk_geral, reset_geral   : std_logic;
 -- control
 signal reset_ctrl   : std_logic;
 signal adder_ctrl   : std_logic;
@@ -317,12 +319,12 @@ end component;
 
 -------------------------------------------------------------------------------------------------
 begin
-    clk_geral <= osc_clk;
-    reset_geral <= reset_n;
-    led(0) <= w_regOverflow_out;
-    led(3 downto 1) <= "000";
-    zero_std_vector <= std_logic_vector(to_unsigned(0, ADDR_MAX_WIDTH));
-    one_std_vector <= std_logic_vector(to_unsigned(1, ADDR_MAX_WIDTH));
+    pilha_read_out <= w_pilha_out;
+    pilhaRetorno_read_out <= w_pilhaRetorno_out;
+    pilhaFuncao_read_out <= w_pilhaFuncao_out;
+    memExt_read_out <= w_memExt_out;
+    zero_std_vector <= "000000000000000000000000";
+    one_std_vector <= "000000000000000000000000";
 
     regArg   : reg_1_1
         generic map
@@ -770,4 +772,4 @@ begin
             out_comp => w_ula_out_comp,
             out_overflow => w_regOverflow_in
         );
-end arc_pythonProcessor;
+end arc;
