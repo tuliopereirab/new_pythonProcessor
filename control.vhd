@@ -56,7 +56,7 @@ end entity;
 architecture arc_control of control is
 
 -- lc (LOAD_CONST), lf (LOAD_FAST), sf (STORE_FAST), co (COMPARE_OP), ja (JUMP_ABSOLUTE), jf (JUMP_FORWARD), b (BINARY_), pj_stay (FICA!), pj_jump (PULA!), pj_end (FINALIZA)
-type state_type is (first, AUX, AUX_0, cf1, cf2, cf3, cf4, cf5, cf6, cf7, lc1, lc2, lc3, lc4, lf1, lf2, lf3, lf4, lf5, lf6, lf7, lf8, b1, b2, b3, b4, b5_1, b5_2, b5_3, b5_4, b6, b7, b8, sf1, sf2, sf3, sf4, sf5, sf6, sf7, sf8, co1, co2, co3, co4, co5, co6_1, co6_2, co6_3, co7, co8, co9, co10, co11, jf1, jf2, jf3, jf4, rv1, rv2, rv3, rv4, rv5, ja1, ja2, ja3, ja4, pj_FICA, pj_PULA1, pj_PULA2, pj_PULA3, pj_FIM);
+type state_type is (first, AUX, AUX_0, AUX_1, cf1, cf2, cf3, cf4, cf5, cf6, cf7, lc1, lc2, lc3, lc4, lf1, lf2, lf3, lf4, lf5, lf6, lf7, lf8, b1, b2, b3, b4, b5_1, b5_2, b5_3, b5_4, b6, b7, b8, sf1, sf2, sf3, sf4, sf5, sf6, sf7, sf8, co1, co2, co3, co4, co5, co6_1, co6_2, co6_3, co7, co8, co9, co10, co11, jf1, jf2, jf3, jf4, rv1, rv2, rv3, rv4, rv5, ja1, ja2, ja3, ja4, pj_FICA, pj_PULA1, pj_PULA2, pj_PULA3, pj_FIM);
 signal atual 	: state_type;
 -- signal signal_one	: integer	:= 1;
 -- signal signal_zero	: integer := 0;
@@ -77,9 +77,25 @@ begin
 			atual <= first;
 		elsif(rising_edge(clk)) then
 			case atual is
+				when AUX_0 =>           -- estado zerado simplesmente para aguardar quando for preciso
+					case sEntrada_regInstr is
+						when "00110010" =>		-- JUMP_FORWARD
+							atual <= jf3;
+						when "00110011" =>		-- JUMP_ABSOLUTE
+							atual <= ja3;
+						when "01100000" =>		-- CALL_FUNCTION
+							atual <= cf3;
+						when "00110001" =>		-- POP_JUMP_IF_TRUE
+							atual <= pj_PULA3;
+						when "00110000" =>		-- POP_JUMP_IF_FALSE
+							atual <= pj_PULA3;
+						when others =>
+							atual <= first;
+					end case;
+				-----------------------------
 				when first =>
-					atual <= AUX_0;
-				when AUX_0 =>
+					atual <= AUX_1;
+				when AUX_1 =>			-- estado onde se recebe o valor de regInstr e regArg
 					atual <= AUX;
 				when AUX =>
 					case sEntrada_regInstr is
@@ -244,7 +260,7 @@ begin
 				when jf1 =>
 					atual <= jf2;
 				when jf2 =>
-					atual <= jf3;
+					atual <= AUX_0;
 				when jf3 =>
 					atual <= jf4;
 				when jf4 =>
@@ -254,7 +270,7 @@ begin
 				when ja1 =>
 					atual <= ja2;
 				when ja2 =>
-					atual <= ja3;
+					atual <= AUX_0;
 				when ja3 =>
 					atual <= ja4;
 				when ja4 =>
@@ -266,7 +282,7 @@ begin
 				when pj_PULA1 =>
 					atual <= pj_PULA2;
 				when pj_PULA2 =>
-					atual <= pj_PULA3;
+					atual <= AUX_0;
 				when pj_PULA3 =>
 					atual <= pj_FIM;
 				when pj_FIM =>
@@ -276,7 +292,7 @@ begin
 				when cf1 =>
 					atual <= cf2;
 				when cf2 =>
-					atual <= cf3;
+					atual <= AUX_0;
 				when cf3 =>
 					atual <= cf4;
 				when cf4 =>
@@ -308,34 +324,61 @@ begin
 	process(atual, sEntrada_regInstr, sEntrada_regArg)
 	begin
 		case atual is
-			when first =>
-			ctrl_regInstr <= '0';
-			ctrl_regArg <= '0';
-			-- -------------------------
-			ctrl_regPc <= '0';
-			ctrl_regOp1 <= '0';
-			ctrl_regOp2 <= '0';
-			ctrl_regComp <= '0';
-			ctrl_regOverflow <= '0';
-			ctrl_regTos <= '0';
-			ctrl_regEnd <= '0';
-			ctrl_regPilha <= "00";
-			ctrl_regMemExt <= "00";
-			ctrl_pilha <= '0';
-			ctrl_memExt <= '0';
-			sel_MuxOp1 <= "00";
-			sel_MuxOp2 <= "00";
-			sel_MuxPilha <= "00";
-			sel_Ula <= "0000";
-			sel_soma_sub <= '0';
-			sel_muxPc <= '0';
-			sel_muxTos <= '0';
-			ctrl_regTosFuncao <= '0';
-			ctrl_pilhaFuncao <= '0';
-			ctrl_regDataReturn <= '0';
-			ctrl_pilhaRetorno <= '0';
-			ctrl_regJump <= '0';
 			when AUX_0 =>
+				ctrl_regInstr <= '0';
+				ctrl_regArg <= '0';
+				-- -------------------------
+				ctrl_regPc <= '0';
+				ctrl_regOp1 <= '0';
+				ctrl_regOp2 <= '0';
+				ctrl_regComp <= '0';
+				ctrl_regOverflow <= '0';
+				ctrl_regTos <= '0';
+				ctrl_regEnd <= '0';
+				ctrl_regPilha <= "00";
+				ctrl_regMemExt <= "00";
+				ctrl_pilha <= '0';
+				ctrl_memExt <= '0';
+				sel_MuxOp1 <= "00";
+				sel_MuxOp2 <= "00";
+				sel_MuxPilha <= "00";
+				sel_Ula <= "0000";
+				sel_soma_sub <= '0';
+				sel_muxPc <= '0';
+				sel_muxTos <= '0';
+				ctrl_regTosFuncao <= '0';
+				ctrl_pilhaFuncao <= '0';
+				ctrl_regDataReturn <= '0';
+				ctrl_pilhaRetorno <= '0';
+				ctrl_regJump <= '0';
+			when first =>
+				ctrl_regInstr <= '0';
+				ctrl_regArg <= '0';
+				-- -------------------------
+				ctrl_regPc <= '0';
+				ctrl_regOp1 <= '0';
+				ctrl_regOp2 <= '0';
+				ctrl_regComp <= '0';
+				ctrl_regOverflow <= '0';
+				ctrl_regTos <= '0';
+				ctrl_regEnd <= '0';
+				ctrl_regPilha <= "00";
+				ctrl_regMemExt <= "00";
+				ctrl_pilha <= '0';
+				ctrl_memExt <= '0';
+				sel_MuxOp1 <= "00";
+				sel_MuxOp2 <= "00";
+				sel_MuxPilha <= "00";
+				sel_Ula <= "0000";
+				sel_soma_sub <= '0';
+				sel_muxPc <= '0';
+				sel_muxTos <= '0';
+				ctrl_regTosFuncao <= '0';
+				ctrl_pilhaFuncao <= '0';
+				ctrl_regDataReturn <= '0';
+				ctrl_pilhaRetorno <= '0';
+				ctrl_regJump <= '0';
+			when AUX_1 =>
 				ctrl_regInstr <= '1';
 				ctrl_regArg <= '1';
 				-- -------------------------

@@ -40,8 +40,7 @@ begin
 		if(rising_edge(clk)) then
 			opArg_out <= instrFull(INSTRUCTION_WIDTH_IN-1 downto DATA_WIDTH_IN);
 			opCode_out <= instrFull(DATA_WIDTH_IN-1 downto 0); -- MODELO DE INSTRUÇÃO: OPARG + OPCODE
+			fullWord_out <= instrFull(INSTRUCTION_WIDTH_IN-1 downto 0);
 		end if;
 	end process;
-
-	fullWord_out <= instrFull(INSTRUCTION_WIDTH_IN-1 downto 0);
 end arc_instr_memory;
