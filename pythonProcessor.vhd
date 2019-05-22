@@ -6,7 +6,7 @@ entity pythonProcessor is
     generic
     (
         DATA_WIDTH              : natural   := 8;   -- data width used in for all normal data (saved in the stack or in the normal memory)
-        ADDR_WIDTH              : natural   := 8;   -- address width used to define the normal memories size (memInstr, pilha, memExt)
+        ADDR_WIDTH              : natural   := 12;   -- address width used to define the normal memories size (memInstr, pilha, memExt)
         ADDR_WIDTH_FUNCTIONS    : natural   := 8;   -- address width used for special memories (pilhaRetorno and pilhaFuncao)
         INSTRUCTION_WIDTH       : natural   := 16;  -- width of the instructions (8 bits for arguments and 8 bits for opCode)
         ADDR_MAX_WIDTH          : natural   := 24;   -- address width used for branch instructions, references 1 byte from the first word and 2 bytes from the second one)

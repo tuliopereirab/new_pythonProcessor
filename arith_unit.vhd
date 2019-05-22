@@ -26,17 +26,18 @@ architecture arc_ula of arith_unit is
 -- signal signal_zero  : integer   := 0;
 -- signal signal_one	: integer	:= 1;
 -- signal signal_two	: integer	:= 2;
-signal s_add, s_sub, saida_interna	: std_logic_vector((DATA_WIDTH_IN-1) downto 0);
+signal s_add, s_sub, saida_interna, s_div	: std_logic_vector((DATA_WIDTH_IN-1) downto 0);
 signal s_plusZeroD1, s_plusZeroD2, s_plusOne, s_lessOne, s_plusTwo	: std_logic_vector((DATA_WIDTH_IN-1) downto 0);
 signal s_not, s_and, s_or, s_xor	: std_logic_vector((DATA_WIDTH_IN-1) downto 0);
 signal saida_comparacao, saida_overflow	: std_logic;
 signal s_igual, s_menor, s_maior  : std_logic;
-signal s_mult, s_div 	: std_logic_vector(((DATA_WIDTH_IN*2)-1) downto 0); -- PARA MULTIPLIÇÃO, DOBRO DE DATA_WIDTH_IN
+signal s_mult 	: std_logic_vector(((DATA_WIDTH_IN*2)-1) downto 0); -- PARA MULTIPLIÇÃO, DOBRO DE DATA_WIDTH_IN
 begin
+
 	s_add		<= data_in_2 + data_in_1;
 	s_sub		<= data_in_2 - data_in_1;
 	s_mult	    <= data_in_2 * data_in_1;
-	--s_div		<= std_logic_vector(to_unsigned(signal_zero, DATA_WIDTH_IN)); -- data_in_1 / data_in_2;     ERRO DIVISÃO!
+	s_div		<= data_in_1;--std_logic_vector(to_integer(data_in_2 / data_in_1));
 
 	s_plusZeroD1 <= data_in_1;
 	s_plusZeroD2 <= data_in_2;

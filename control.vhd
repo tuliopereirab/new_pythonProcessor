@@ -56,7 +56,7 @@ end entity;
 architecture arc_control of control is
 
 -- lc (LOAD_CONST), lf (LOAD_FAST), sf (STORE_FAST), co (COMPARE_OP), ja (JUMP_ABSOLUTE), jf (JUMP_FORWARD), b (BINARY_), pj_stay (FICA!), pj_jump (PULA!), pj_end (FINALIZA)
-type state_type is (first, AUX, cf1, cf2, cf3, cf4, cf5, cf6, cf7, lc1, lc2, lc3, lc4, lf1, lf2, lf3, lf4, lf5, lf6, lf7, lf8, b1, b2, b3, b4, b5_1, b5_2, b5_3, b5_4, b6, b7, b8, sf1, sf2, sf3, sf4, sf5, sf6, sf7, sf8, co1, co2, co3, co4, co5, co6_1, co6_2, co6_3, co7, co8, co9, co10, co11, jf1, jf2, jf3, jf4, rv1, rv2, rv3, rv4, rv5, ja1, ja2, ja3, ja4, pj_FICA, pj_PULA1, pj_PULA2, pj_PULA3, pj_FIM);
+type state_type is (first, AUX, AUX_0, cf1, cf2, cf3, cf4, cf5, cf6, cf7, lc1, lc2, lc3, lc4, lf1, lf2, lf3, lf4, lf5, lf6, lf7, lf8, b1, b2, b3, b4, b5_1, b5_2, b5_3, b5_4, b6, b7, b8, sf1, sf2, sf3, sf4, sf5, sf6, sf7, sf8, co1, co2, co3, co4, co5, co6_1, co6_2, co6_3, co7, co8, co9, co10, co11, jf1, jf2, jf3, jf4, rv1, rv2, rv3, rv4, rv5, ja1, ja2, ja3, ja4, pj_FICA, pj_PULA1, pj_PULA2, pj_PULA3, pj_FIM);
 signal atual 	: state_type;
 -- signal signal_one	: integer	:= 1;
 -- signal signal_zero	: integer := 0;
@@ -78,6 +78,8 @@ begin
 		elsif(rising_edge(clk)) then
 			case atual is
 				when first =>
+					atual <= AUX_0;
+				when AUX_0 =>
 					atual <= AUX;
 				when AUX =>
 					case sEntrada_regInstr is
@@ -307,6 +309,33 @@ begin
 	begin
 		case atual is
 			when first =>
+			ctrl_regInstr <= '0';
+			ctrl_regArg <= '0';
+			-- -------------------------
+			ctrl_regPc <= '0';
+			ctrl_regOp1 <= '0';
+			ctrl_regOp2 <= '0';
+			ctrl_regComp <= '0';
+			ctrl_regOverflow <= '0';
+			ctrl_regTos <= '0';
+			ctrl_regEnd <= '0';
+			ctrl_regPilha <= "00";
+			ctrl_regMemExt <= "00";
+			ctrl_pilha <= '0';
+			ctrl_memExt <= '0';
+			sel_MuxOp1 <= "00";
+			sel_MuxOp2 <= "00";
+			sel_MuxPilha <= "00";
+			sel_Ula <= "0000";
+			sel_soma_sub <= '0';
+			sel_muxPc <= '0';
+			sel_muxTos <= '0';
+			ctrl_regTosFuncao <= '0';
+			ctrl_pilhaFuncao <= '0';
+			ctrl_regDataReturn <= '0';
+			ctrl_pilhaRetorno <= '0';
+			ctrl_regJump <= '0';
+			when AUX_0 =>
 				ctrl_regInstr <= '1';
 				ctrl_regArg <= '1';
 				-- -------------------------
