@@ -101,6 +101,8 @@ begin
 							atual <= sf3;
 						when "00001101" =>		-- LOAD_FAST
 							atual <= lf3;
+						when "00000010" => 		-- COMPARE_OP
+							atual <= co2;
 						when others =>
 							atual <= first;
 					end case;
@@ -255,7 +257,12 @@ begin
 				-- ====================================
 				-- COMPARE_OP
 				when co1 =>
-					atual <= co2;
+					if((entrada_regTos=std_logic_vector(to_unsigned(0, ADDR_WIDTH_IN))) OR (entrada_regTos=std_logic_vector(to_unsigned(1, ADDR_WIDTH_IN)))) then
+						errorCode <= std_logic_vector(to_unsigned(255, DATA_WIDTH_IN));
+						atual <= error_1;
+					else
+						atual <= co2;
+					end if;
 				when co2 =>
 					atual <= co3;
 				when co3 =>
