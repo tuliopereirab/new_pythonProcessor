@@ -310,16 +310,17 @@ end component;
 component arith_unit is
 	generic
 	(
-		DATA_WIDTH_IN	        : natural;
+		DATA_WIDTH_IN_PROC		: natural;
+		DATA_WIDTH_IN_ULA	    : natural;
         ULA_CTRL_WIDTH_IN       : natural
 	);
 
 	port
 	(
 		sel_Ula				: in std_logic_vector((ULA_CTRL_WIDTH_IN-1) downto 0);
-		data_in_1			: in std_logic_vector((DATA_WIDTH_IN-1) downto 0);
-		data_in_2			: in std_logic_vector((DATA_WIDTH_IN-1) downto 0);
-		out_result		    : out std_logic_vector((DATA_WIDTH_IN-1) downto 0);
+		data_in_1			: in std_logic_vector((DATA_WIDTH_IN_ULA-1) downto 0);
+		data_in_2			: in std_logic_vector((DATA_WIDTH_IN_ULA-1) downto 0);
+		out_result		    : out std_logic_vector((DATA_WIDTH_IN_ULA-1) downto 0);
 		out_comp		    : out std_logic;
 		out_overflow	    : out std_logic
 	);
@@ -788,7 +789,8 @@ begin
     ula : arith_unit
         generic map
         (
-            DATA_WIDTH_IN => ADDR_MAX_WIDTH,
+            DATA_WIDTH_IN_PROC => DATA_WIDTH,
+            DATA_WIDTH_IN_ULA => ADDR_MAX_WIDTH,
             ULA_CTRL_WIDTH_IN => ULA_CTRL_WIDTH
         )
         port map

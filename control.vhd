@@ -149,8 +149,11 @@ begin
 							atual <= cf1;
 						when "01100001" =>		-- RETURN VALUE
 							atual <= rv1;
-						when others =>
+						when "00000000" =>		-- ignorar opCode contendo somente zeros: significa que o programa acabou de executar
 							atual <= first;
+						when others =>
+							errorCode <= "00111100";
+							atual <= error_1;
 						end case;
 			-- ====================================
 			-- ERROR
@@ -161,6 +164,8 @@ begin
 				when error_3 =>
 					if(errorCode=std_logic_vector(to_unsigned(255, DATA_WIDTH_IN))) then
 						atual <= error_3;		-- loop infinito
+					elsif(errorCode=std_logic_vector(to_unsigned(60, DATA_WIDTH_IN))) then
+						atual <= error_3;		-- loop inifinito
 					else
 						atual <= first;
 					end if;
