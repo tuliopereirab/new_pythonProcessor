@@ -43,5 +43,5 @@ begin
 		end if;
 	end process;
 
-	data_out <= pilha(addr);		
+	data_out <= pilha(addr);
 end arc;

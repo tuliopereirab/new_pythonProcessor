@@ -6,7 +6,7 @@ entity pythonProcessor is
     generic
     (
         DATA_WIDTH              : natural   := 8;   -- data width used in for all normal data (saved in the stack or in the normal memory)
-        ADDR_WIDTH              : natural   := 12;   -- address width used to define the normal memories size (memInstr, pilha, memExt)
+        ADDR_WIDTH              : natural   := 8;   -- address width used to define the normal memories size (memInstr, pilha, memExt)
         ADDR_WIDTH_FUNCTIONS    : natural   := 8;   -- address width used for special memories (pilhaRetorno and pilhaFuncao)
         INSTRUCTION_WIDTH       : natural   := 16;  -- width of the instructions (8 bits for arguments and 8 bits for opCode)
         ADDR_MAX_WIDTH          : natural   := 24;   -- address width used for branch instructions, references 1 byte from the first word and 2 bytes from the second one)
@@ -15,12 +15,9 @@ entity pythonProcessor is
 
     port
     (
-        clk_geral                   : in std_logic;
-        reset_geral                 : in std_logic;
-        pilha_read_out              : out std_logic_vector((DATA_WIDTH-1) downto 0);
-        memExt_read_out             : out std_logic_vector((DATA_WIDTH-1) downto 0);
-        pilhaFuncao_read_out        : out std_logic_vector((ADDR_WIDTH-1) downto 0);
-        pilhaRetorno_read_out       : out std_logic_vector((ADDR_WIDTH-1) downto 0)
+        osc_clk                     : in std_logic;
+        reset_n                     : in std_logic;
+        memExt_read_out             : out std_logic_vector((DATA_WIDTH-1) downto 0)
     );
 end entity;
 
@@ -29,6 +26,7 @@ architecture arc of pythonProcessor is
 --extra signals
 -- signal signal_zero  : integer   := 0;
 -- signal signal_one   : integer   := 1;
+signal clk_geral, reset_geral   : std_logic;
 signal zero_std_vector, one_std_vector  : std_logic_vector((ADDR_MAX_WIDTH-1) downto 0);
 -- control
 signal reset_ctrl   : std_logic;
@@ -276,6 +274,7 @@ component instr_memory is
 
 	port
 	(
+		clk		 : in std_logic;
 		addr_in		     : in std_logic_vector((ADDR_WIDTH_IN-1) downto 0);
 		opCode_out	     : out std_logic_vector((DATA_WIDTH_IN-1) downto 0);
 		opArg_out		 : out std_logic_vector((DATA_WIDTH_IN-1) downto 0);
@@ -319,12 +318,11 @@ end component;
 
 -------------------------------------------------------------------------------------------------
 begin
-    pilha_read_out <= w_pilha_out;
-    pilhaRetorno_read_out <= w_pilhaRetorno_out;
-    pilhaFuncao_read_out <= w_pilhaFuncao_out;
     memExt_read_out <= w_memExt_out;
-    zero_std_vector <= "000000000000000000000000";
-    one_std_vector <= "000000000000000000000000";
+    clk_geral <= osc_clk;
+    reset_geral <= reset_n;
+    zero_std_vector <= std_logic_vector(to_unsigned(0, ADDR_MAX_WIDTH));
+    one_std_vector <= std_logic_vector(to_unsigned(1, ADDR_MAX_WIDTH));
 
     regArg   : reg_1_1
         generic map
@@ -687,6 +685,7 @@ begin
         )
         port map
         (
+            clk => clk_geral,
             addr_in => w_regPc_out,
             opCode_out => w_regInstr_in,
             opArg_out => w_regArg_in,

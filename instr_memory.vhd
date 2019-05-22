@@ -12,6 +12,7 @@ entity instr_memory is
 
 	port
 	(
+		clk				 : in std_logic;
 		addr_in		     : in std_logic_vector((ADDR_WIDTH_IN-1) downto 0);
 		opCode_out	     : out std_logic_vector((DATA_WIDTH_IN-1) downto 0);
 		opArg_out		 : out std_logic_vector((DATA_WIDTH_IN-1) downto 0);
@@ -31,10 +32,15 @@ signal endereco_convert	: natural range 0 to 2**ADDR_WIDTH_IN-1;
 
 signal instrFull	: std_logic_vector((INSTRUCTION_WIDTH_IN-1) downto 0);
 begin
-		endereco_convert <= to_integer(unsigned(addr_in));
+	endereco_convert <= to_integer(unsigned(addr_in));
+	instrFull <= memInstr(endereco_convert);
 
-		instrFull <= memInstr(endereco_convert);
-		opArg_out <= instrFull(INSTRUCTION_WIDTH_IN-1 downto DATA_WIDTH_IN);
-		opCode_out <= instrFull(DATA_WIDTH_IN-1 downto 0); -- MODELO DE INSTRUÇÃO: OPARG + OPCODE
-		fullWord_out <= instrFull(INSTRUCTION_WIDTH_IN-1 downto 0);
+	process(clk)
+	begin
+		if(rising_edge(clk)) then
+			opArg_out <= instrFull(INSTRUCTION_WIDTH_IN-1 downto DATA_WIDTH_IN);
+			opCode_out <= instrFull(DATA_WIDTH_IN-1 downto 0); -- MODELO DE INSTRUÇÃO: OPARG + OPCODE
+			fullWord_out <= instrFull(INSTRUCTION_WIDTH_IN-1 downto 0);
+		end if;
+	end process;
 end arc_instr_memory;
