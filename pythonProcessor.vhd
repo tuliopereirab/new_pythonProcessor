@@ -17,7 +17,8 @@ entity pythonProcessor is
     (
         osc_clk                     : in std_logic;
         reset_n                     : in std_logic;
-        memExt_read_out             : out std_logic_vector((DATA_WIDTH-1) downto 0)
+        memExt_read_out             : out std_logic_vector((DATA_WIDTH-1) downto 0);
+        error_out                   : out std_logic_vector((DATA_WIDTH-1) downto 0)
     );
 end entity;
 
@@ -36,6 +37,8 @@ signal regOverflow_ctrl, regJump_ctrl, regPc_ctrl, regTos_ctrl, regTosFuncao_ctr
 signal pilha_ctrl, pilhaFuncao_ctrl, pilhaRetorno_ctrl, memExt_ctrl : std_logic;
 signal regMemExt_ctrl, regPilha_ctrl, muxOp1_ctrl, muxOp2_ctrl, muxPilha_ctrl    : std_logic_vector(1 downto 0);
 signal ula_ctrl : std_logic_vector((ULA_CTRL_WIDTH-1) downto 0);
+signal regError_ctrl    : std_logic;
+signal w_regError_in, w_regError_out    : std_logic_vector((DATA_WIDTH-1) downto 0);
 -- memExt
 signal w_memExt_in, w_memExt_out    : std_logic_vector((DATA_WIDTH-1) downto 0);
 -- memInstr
@@ -84,6 +87,7 @@ component control is
 	generic
 	(
 		DATA_WIDTH_IN	    : natural;
+        ADDR_WIDTH_IN       : natural;
 		ULA_CTRL_WIDTH_IN	: natural
 	);
 	port
@@ -96,7 +100,11 @@ component control is
         entrada_regArg			: in std_logic_vector((DATA_WIDTH-1) downto 0);
 		entrada_regComp		    : in std_logic;
 		entrada_regOverflow	    : in std_logic;
+		-- error verification
+		entrada_regTos			: in std_logic_vector((ADDR_WIDTH_IN-1) downto 0);
         -- ===================================================
+        -- error verification
+        regError_out            : out std_logic_vector((DATA_WIDTH_IN-1) downto 0);
         -- basics
         saida_reset 			: out std_logic;
         -- registers
@@ -113,6 +121,7 @@ component control is
 		ctrl_regArg				: out std_logic;
 		ctrl_regEnd				: out std_logic;
         ctrl_regJump			: out std_logic;
+		ctrl_regError			: out std_logic;
         ctrl_regPilha 		    : out std_logic_vector(1 downto 0);
         ctrl_regMemExt    		: out std_logic_vector(1 downto 0);
         -- memories
@@ -319,6 +328,7 @@ end component;
 -------------------------------------------------------------------------------------------------
 begin
     memExt_read_out <= w_memExt_out;
+    error_out <= w_regError_out;
     clk_geral <= osc_clk;
     reset_geral <= reset_n;
     zero_std_vector <= std_logic_vector(to_unsigned(0, ADDR_MAX_WIDTH));
@@ -409,6 +419,19 @@ begin
             data_out => w_regOp2_out
         );
 
+    regError    : reg_1_1
+        generic map
+        (
+            DATA_WIDTH_IN => DATA_WIDTH,
+            DATA_WIDTH_OUT => DATA_WIDTH
+        )
+        port map
+        (
+            clk => clk_geral,
+            ctrl_in => regError_ctrl,
+            data_in => w_regError_in,
+            data_out => w_regError_out
+        );
 --=========================================================
 
     regOverflow    : reg_1_1_1bit
@@ -539,8 +562,8 @@ begin
         port map
         (
             sel_in => muxOp1_ctrl,
-            data_in_1 => zero_std_vector,
-            data_in_2 => one_std_vector,
+            data_in_1 => zero_std_vector,       -- desnecessário
+            data_in_2 => one_std_vector,        -- desnecessário
             data_in_3 => w_regJump_out,
             data_in_4 => w_regOp1_out,
             data_out => w_ula_in_op1
@@ -697,6 +720,7 @@ begin
         generic map
         (
             DATA_WIDTH_IN => DATA_WIDTH,
+            ADDR_WIDTH_IN => ADDR_WIDTH,
     		ULA_CTRL_WIDTH_IN => ULA_CTRL_WIDTH
         )
         port map
@@ -709,7 +733,11 @@ begin
             entrada_regArg => w_regArg_out,
             entrada_regComp => w_regComp_out,
             entrada_regOverflow => w_regOverflow_out,
+            -- error verification
+            entrada_regTos => w_regTos_out,
             -- ===================================================
+            -- error verification
+            regError_out => w_regError_in,
             -- basics
             saida_reset => reset_ctrl,
             -- registers
@@ -726,6 +754,7 @@ begin
             ctrl_regArg => regArg_ctrl,
             ctrl_regEnd => regEnd_ctrl,
             ctrl_regJump => regJump_ctrl,
+            ctrl_regError => regError_ctrl,
     		ctrl_regPilha => regPilha_ctrl,
     		ctrl_regMemExt => regMemExt_ctrl,
             -- memories

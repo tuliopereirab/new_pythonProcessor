@@ -6,6 +6,7 @@ entity control is
 	generic
 	(
 		DATA_WIDTH_IN		: natural;
+		ADDR_WIDTH_IN		: natural;
 		ULA_CTRL_WIDTH_IN	: natural
 	);
 	port
@@ -18,7 +19,11 @@ entity control is
         entrada_regArg			: in std_logic_vector((DATA_WIDTH_IN-1) downto 0);
 		entrada_regComp		    : in std_logic;
 		entrada_regOverflow	    : in std_logic;
+		-- error verification
+		entrada_regTos			: in std_logic_vector((ADDR_WIDTH_IN-1) downto 0);
         -- ===================================================
+		-- error verification
+		regError_out			: out std_logic_vector((DATA_WIDTH_IN-1) downto 0);
         -- basics
         saida_reset 			: out std_logic;
         -- registers
@@ -35,6 +40,7 @@ entity control is
 		ctrl_regArg				: out std_logic;
 		ctrl_regEnd				: out std_logic;
         ctrl_regJump			: out std_logic;
+		ctrl_regError			: out std_logic;
 		ctrl_regPilha 		    : out std_logic_vector(1 downto 0);
 		ctrl_regMemExt    		: out std_logic_vector(1 downto 0);
         -- memories
@@ -50,17 +56,19 @@ entity control is
         -- arithmetic
         sel_soma_sub			: out std_logic;
         sel_ula					: out std_logic_vector((ULA_CTRL_WIDTH_IN-1) downto 0)
+
 	);
 end entity;
 
 architecture arc_control of control is
 
 -- lc (LOAD_CONST), lf (LOAD_FAST), sf (STORE_FAST), co (COMPARE_OP), ja (JUMP_ABSOLUTE), jf (JUMP_FORWARD), b (BINARY_), pj_stay (FICA!), pj_jump (PULA!), pj_end (FINALIZA)
-type state_type is (first, AUX, AUX_0, AUX_1, cf1, cf2, cf3, cf4, cf5, cf6, cf7, lc1, lc2, lc3, lc4, lf1, lf2, lf3, lf4, lf5, lf6, lf7, lf8, b1, b2, b3, b4, b5_1, b5_2, b5_3, b5_4, b6, b7, b8, sf1, sf2, sf3, sf4, sf5, sf6, sf7, sf8, co1, co2, co3, co4, co5, co6_1, co6_2, co6_3, co7, co8, co9, co10, co11, jf1, jf2, jf3, jf4, rv1, rv2, rv3, rv4, rv5, ja1, ja2, ja3, ja4, pj_FICA, pj_PULA1, pj_PULA2, pj_PULA3, pj_FIM);
+type state_type is (first, AUX, AUX_0, AUX_1, error_1, error_2, error_3, cf1, cf2, cf3, cf4, cf5, cf6, cf7, lc1, lc2, lc3, lc4, lf1, lf2, lf3, lf4, lf5, lf6, lf7, lf8, b1, b2, b3, b4, b5_1, b5_2, b5_3, b5_4, b6, b7, b8, sf1, sf2, sf3, sf4, sf5, sf6, sf7, sf8, co1, co2, co3, co4, co5, co6_1, co6_2, co6_3, co7, co8, co9, co10, co11, jf1, jf2, jf3, jf4, rv1, rv2, rv3, rv4, rv5, ja1, ja2, ja3, ja4, pj_FICA, pj_PULA1, pj_PULA2, pj_PULA3, pj_FIM);
 signal atual 	: state_type;
 -- signal signal_one	: integer	:= 1;
 -- signal signal_zero	: integer := 0;
 signal verif_muxOp1, verif_muxOp2	: std_logic_vector(1 downto 0);
+signal errorCode	: std_logic_vector((DATA_WIDTH_IN-1) downto 0);
 --signal sEntrada_regComp, sEntrada_regOverflow	: std_logic;
 signal sEntrada_regInstr, sEntrada_regArg 	: std_logic_vector(7 downto 0);
 
@@ -71,7 +79,7 @@ begin
 	saida_reset <= reset_in;
 
 
-	process(clk, reset_in, entrada_regComp, sEntrada_regArg, sEntrada_regInstr, entrada_regOverflow)
+	process(clk, reset_in, entrada_regComp, sEntrada_regArg, sEntrada_regInstr, entrada_regOverflow, entrada_regTos)
 	begin
 		if(reset_in='1') then
 			atual <= first;
@@ -142,7 +150,18 @@ begin
 						when others =>
 							atual <= first;
 						end case;
-
+			-- ====================================
+			-- ERROR
+				when error_1 =>
+					atual <= error_2;
+				when error_2 =>
+					atual <= error_3;
+				when error_3 =>
+					if(errorCode=std_logic_vector(to_unsigned(255, DATA_WIDTH_IN))) then
+						atual <= error_3;		-- loop infinito
+					else
+						atual <= first;
+					end if;
 			-- ====================================
 			-- LOAD_CONST
 				when lc1 =>
@@ -182,7 +201,12 @@ begin
 				when sf4 =>
 					atual <= sf5;
 				when sf5 =>
-					atual <= sf6;
+					if(entrada_regTos=std_logic_vector(to_unsigned(0, ADDR_WIDTH_IN))) then
+						errorCode <= std_logic_vector(to_unsigned(255, DATA_WIDTH_IN));
+						atual <= error_1;
+					else
+						atual <= sf6;
+					end if;
 				when sf6 =>
 					atual <= sf7;
 				when sf7 =>
@@ -192,7 +216,12 @@ begin
 				-- ====================================
 				-- BINARY_
 				when b1 =>
-					atual <= b2;
+					if(entrada_regTos=std_logic_vector(to_unsigned(0, ADDR_WIDTH_IN))) then
+						errorCode <= std_logic_vector(to_unsigned(255, DATA_WIDTH_IN));
+						atual <= error_1;
+					else
+						atual <= b2;
+					end if;
 				when b2 =>
 					atual <= b3;
 				when b3 =>
@@ -355,6 +384,8 @@ begin
 				ctrl_regDataReturn <= '0';
 				ctrl_pilhaRetorno <= '0';
 				ctrl_regJump <= '0';
+				ctrl_regError <= '0';
+				regError_out <= "00000000";
 			when first =>
 				ctrl_regInstr <= '0';
 				ctrl_regArg <= '0';
@@ -382,6 +413,8 @@ begin
 				ctrl_regDataReturn <= '0';
 				ctrl_pilhaRetorno <= '0';
 				ctrl_regJump <= '0';
+				ctrl_regError <= '0';
+				regError_out <= "00000000";
 			when AUX_1 =>
 				ctrl_regInstr <= '1';
 				ctrl_regArg <= '1';
@@ -409,6 +442,8 @@ begin
 				ctrl_regDataReturn <= '0';
 				ctrl_pilhaRetorno <= '0';
 				ctrl_regJump <= '0';
+				ctrl_regError <= '0';
+				regError_out <= "00000000";
 			when AUX =>
 				ctrl_regInstr <= '0';
 				ctrl_regArg <= '0';
@@ -428,6 +463,95 @@ begin
 				sel_MuxOp2 <= "00";
 				sel_MuxPilha <= "00";
 				sel_Ula <= "0000";
+				sel_soma_sub <= '0';
+				sel_muxPc <= '0';
+				sel_muxTos <= '0';
+				ctrl_regTosFuncao <= '0';
+				ctrl_pilhaFuncao <= '0';
+				ctrl_regDataReturn <= '0';
+				ctrl_pilhaRetorno <= '0';
+				ctrl_regJump <= '0';
+				ctrl_regError <= '0';
+				regError_out <= "00000000";
+			when error_1 =>
+				regError_out <= errorCode;
+				sel_MuxOp1 <= "00";
+				sel_MuxOp2 <= "00";
+				sel_Ula <= "0000";
+				-- -------------------------
+				ctrl_regError <= '0';
+				ctrl_regInstr <= '0';
+				ctrl_regArg <= '0';
+				ctrl_regPc <= '0';
+				ctrl_regOp1 <= '0';
+				ctrl_regOp2 <= '0';
+				ctrl_regComp <= '0';
+				ctrl_regOverflow <= '0';
+				ctrl_regTos <= '0';
+				ctrl_regEnd <= '0';
+				ctrl_regPilha <= "00";
+				ctrl_regMemExt <= "00";
+				ctrl_pilha <= '0';
+				ctrl_memExt <= '0';
+				sel_MuxPilha <= "00";
+				sel_soma_sub <= '0';
+				sel_muxPc <= '0';
+				sel_muxTos <= '0';
+				ctrl_regTosFuncao <= '0';
+				ctrl_pilhaFuncao <= '0';
+				ctrl_regDataReturn <= '0';
+				ctrl_pilhaRetorno <= '0';
+				ctrl_regJump <= '0';
+			when error_2 =>
+				ctrl_regError <= '1';
+				regError_out <= errorCode;
+				ctrl_regPc <= '1';
+				-- -------------------------
+				sel_MuxOp1 <= "00";
+				sel_MuxOp2 <= "00";
+				sel_Ula <= "0000";
+				ctrl_regInstr <= '0';
+				ctrl_regArg <= '0';
+				ctrl_regOp1 <= '0';
+				ctrl_regOp2 <= '0';
+				ctrl_regComp <= '0';
+				ctrl_regOverflow <= '0';
+				ctrl_regTos <= '0';
+				ctrl_regEnd <= '0';
+				ctrl_regPilha <= "00";
+				ctrl_regMemExt <= "00";
+				ctrl_pilha <= '0';
+				ctrl_memExt <= '0';
+				sel_MuxPilha <= "00";
+				sel_soma_sub <= '0';
+				sel_muxPc <= '0';
+				sel_muxTos <= '0';
+				ctrl_regTosFuncao <= '0';
+				ctrl_pilhaFuncao <= '0';
+				ctrl_regDataReturn <= '0';
+				ctrl_pilhaRetorno <= '0';
+				ctrl_regJump <= '0';
+			when error_3 =>
+				ctrl_regError <= '0';
+				regError_out <= errorCode;
+				ctrl_regPc <= '0';
+				-- -------------------------
+				sel_MuxOp1 <= "00";
+				sel_MuxOp2 <= "00";
+				sel_Ula <= "0000";
+				ctrl_regInstr <= '0';
+				ctrl_regArg <= '0';
+				ctrl_regOp1 <= '0';
+				ctrl_regOp2 <= '0';
+				ctrl_regComp <= '0';
+				ctrl_regOverflow <= '0';
+				ctrl_regTos <= '0';
+				ctrl_regEnd <= '0';
+				ctrl_regPilha <= "00";
+				ctrl_regMemExt <= "00";
+				ctrl_pilha <= '0';
+				ctrl_memExt <= '0';
+				sel_MuxPilha <= "00";
 				sel_soma_sub <= '0';
 				sel_muxPc <= '0';
 				sel_muxTos <= '0';
@@ -463,6 +587,8 @@ begin
 				ctrl_regDataReturn <= '0';
 				ctrl_pilhaRetorno <= '0';
 				ctrl_regJump <= '0';
+				ctrl_regError <= '0';
+				regError_out <= "00000000";
 			when lc2 =>
 				ctrl_regTos <= '1';
 				ctrl_regPilha <= "10";
@@ -490,6 +616,8 @@ begin
 				ctrl_regDataReturn <= '0';
 				ctrl_pilhaRetorno <= '0';
 				ctrl_regJump <= '0';
+				ctrl_regError <= '0';
+				regError_out <= "00000000";
 			when lc3 =>
 				ctrl_regTos <= '0';
 				ctrl_regPilha <= "00";
@@ -517,6 +645,8 @@ begin
 				ctrl_regDataReturn <= '0';
 				ctrl_pilhaRetorno <= '0';
 				ctrl_regJump <= '0';
+				ctrl_regError <= '0';
+				regError_out <= "00000000";
 			when lc4 =>
 				ctrl_pilha <= '0';
 				ctrl_regPc <= '1';
@@ -544,6 +674,8 @@ begin
 				ctrl_regDataReturn <= '0';
 				ctrl_pilhaRetorno <= '0';
 				ctrl_regJump <= '0';
+				ctrl_regError <= '0';
+				regError_out <= "00000000";
 			when lf1 =>
 				sel_muxPc <= '0';
 				sel_MuxOp1 <= "00";
@@ -571,6 +703,8 @@ begin
 				ctrl_regDataReturn <= '0';
 				ctrl_pilhaRetorno <= '0';
 				ctrl_regJump <= '0';
+				ctrl_regError <= '0';
+				regError_out <= "00000000";
 			when lf2 =>
 				ctrl_regPc <= '1';
 				-- -------------------------
@@ -598,6 +732,8 @@ begin
 				ctrl_regDataReturn <= '0';
 				ctrl_pilhaRetorno <= '0';
 				ctrl_regJump <= '0';
+				ctrl_regError <= '0';
+				regError_out <= "00000000";
 			when lf3 =>
 				ctrl_regPc <= '0';
 				ctrl_regJump <= '1';
@@ -625,6 +761,8 @@ begin
 				ctrl_pilhaFuncao <= '0';
 				ctrl_regDataReturn <= '0';
 				ctrl_pilhaRetorno <= '0';
+				ctrl_regError <= '0';
+				regError_out <= "00000000";
 			when lf4 =>
 				ctrl_regJump <= '0';
 				ctrl_regEnd <= '1';
@@ -652,6 +790,8 @@ begin
 				ctrl_pilhaFuncao <= '0';
 				ctrl_regDataReturn <= '0';
 				ctrl_pilhaRetorno <= '0';
+				ctrl_regError <= '0';
+				regError_out <= "00000000";
 			when lf5 =>
 				ctrl_regEnd <= '0';
 				ctrl_regMemExt <= "01";
@@ -679,6 +819,8 @@ begin
 				ctrl_pilhaFuncao <= '0';
 				ctrl_regDataReturn <= '0';
 				ctrl_pilhaRetorno <= '0';
+				ctrl_regError <= '0';
+				regError_out <= "00000000";
 			when lf6 =>
 				ctrl_regMemExt <= "00";
 				ctrl_regPilha <= "10";
@@ -706,6 +848,8 @@ begin
 				ctrl_pilhaFuncao <= '0';
 				ctrl_regDataReturn <= '0';
 				ctrl_pilhaRetorno <= '0';
+				ctrl_regError <= '0';
+				regError_out <= "00000000";
 			when lf7 =>
 				ctrl_regPilha <= "00";
 				ctrl_regTos <= '0';
@@ -733,6 +877,8 @@ begin
 				ctrl_pilhaFuncao <= '0';
 				ctrl_regDataReturn <= '0';
 				ctrl_pilhaRetorno <= '0';
+				ctrl_regError <= '0';
+				regError_out <= "00000000";
 			when lf8 =>
 				ctrl_pilha <= '0';
 				ctrl_regPc <= '1';
@@ -760,6 +906,8 @@ begin
 				ctrl_pilhaFuncao <= '0';
 				ctrl_regDataReturn <= '0';
 				ctrl_pilhaRetorno <= '0';
+				ctrl_regError <= '0';
+				regError_out <= "00000000";
             when sf1 =>
 				sel_muxPc <= '0';
 				sel_MuxOp1 <= "00";
@@ -787,6 +935,8 @@ begin
 				ctrl_regDataReturn <= '0';
 				ctrl_pilhaRetorno <= '0';
 				ctrl_regJump <= '0';
+				ctrl_regError <= '0';
+				regError_out <= "00000000";
             when sf2 =>
 				ctrl_regPc <= '1';
 				-- -------------------------
@@ -814,6 +964,8 @@ begin
 				ctrl_regDataReturn <= '0';
 				ctrl_pilhaRetorno <= '0';
 				ctrl_regJump <= '0';
+				ctrl_regError <= '0';
+				regError_out <= "00000000";
             when sf3 =>
 				ctrl_regPc <= '0';
 				ctrl_regJump <= '1';
@@ -841,6 +993,8 @@ begin
 				ctrl_pilhaFuncao <= '0';
 				ctrl_regDataReturn <= '0';
 				ctrl_pilhaRetorno <= '0';
+				ctrl_regError <= '0';
+				regError_out <= "00000000";
             when sf4 =>
 				ctrl_regJump <= '0';
 				ctrl_regPilha <= "00";
@@ -868,6 +1022,8 @@ begin
 				ctrl_pilhaFuncao <= '0';
 				ctrl_regDataReturn <= '0';
 				ctrl_pilhaRetorno <= '0';
+				ctrl_regError <= '0';
+				regError_out <= "00000000";
             when sf5 =>
 				ctrl_regEnd <= '0';
 				ctrl_regMemExt <= "00";
@@ -895,6 +1051,8 @@ begin
 				ctrl_pilhaFuncao <= '0';
 				ctrl_regDataReturn <= '0';
 				ctrl_pilhaRetorno <= '0';
+				ctrl_regError <= '0';
+				regError_out <= "00000000";
             when sf6 =>
 				ctrl_memExt <= '0';
 				ctrl_regTos <= '1';
@@ -922,6 +1080,8 @@ begin
 				ctrl_pilhaFuncao <= '0';
 				ctrl_regDataReturn <= '0';
 				ctrl_pilhaRetorno <= '0';
+				ctrl_regError <= '0';
+				regError_out <= "00000000";
             when sf7 =>
 				ctrl_regTos <= '0';
 				sel_MuxOp1 <= "00";
@@ -949,6 +1109,8 @@ begin
 				ctrl_pilhaFuncao <= '0';
 				ctrl_regDataReturn <= '0';
 				ctrl_pilhaRetorno <= '0';
+				ctrl_regError <= '0';
+				regError_out <= "00000000";
             when sf8 =>
 				ctrl_regPc <= '1';
 				-- -------------------------
@@ -976,6 +1138,8 @@ begin
 				ctrl_pilhaFuncao <= '0';
 				ctrl_regDataReturn <= '0';
 				ctrl_pilhaRetorno <= '0';
+				ctrl_regError <= '0';
+				regError_out <= "00000000";
             when b1 =>
 				ctrl_regPilha <= "01";
 				sel_muxTos <= '0';
@@ -1003,6 +1167,8 @@ begin
 				ctrl_regDataReturn <= '0';
 				ctrl_pilhaRetorno <= '0';
 				ctrl_regJump <= '0';
+				ctrl_regError <= '0';
+				regError_out <= "00000000";
             when b2 =>
 				ctrl_regPilha <= "00";
 				ctrl_regOp1 <= '1';
@@ -1030,6 +1196,8 @@ begin
 				ctrl_regDataReturn <= '0';
 				ctrl_pilhaRetorno <= '0';
 				ctrl_regJump <= '0';
+				ctrl_regError <= '0';
+				regError_out <= "00000000";
             when b3 =>
 				ctrl_regPilha <= "01";
 				ctrl_regOp1 <= '0';
@@ -1057,6 +1225,8 @@ begin
 				ctrl_regDataReturn <= '0';
 				ctrl_pilhaRetorno <= '0';
 				ctrl_regJump <= '0';
+				ctrl_regError <= '0';
+				regError_out <= "00000000";
             when b4 =>
 				ctrl_regPilha <= "00";
 				ctrl_regOp2 <= '1';
@@ -1084,6 +1254,8 @@ begin
 				ctrl_regDataReturn <= '0';
 				ctrl_pilhaRetorno <= '0';
 				ctrl_regJump <= '0';
+				ctrl_regError <= '0';
+				regError_out <= "00000000";
             when b5_1 =>
 				ctrl_regOp2 <= '0';
 				sel_MuxPilha <= "00";
@@ -1111,6 +1283,8 @@ begin
 				ctrl_regDataReturn <= '0';
 				ctrl_pilhaRetorno <= '0';
 				ctrl_regJump <= '0';
+				ctrl_regError <= '0';
+				regError_out <= "00000000";
             when b5_2 =>
 				ctrl_regOp2 <= '0';
 				sel_MuxPilha <= "00";
@@ -1138,6 +1312,8 @@ begin
 				ctrl_regDataReturn <= '0';
 				ctrl_pilhaRetorno <= '0';
 				ctrl_regJump <= '0';
+				ctrl_regError <= '0';
+				regError_out <= "00000000";
             when b5_3 =>
 				ctrl_regOp2 <= '0';
 				sel_MuxPilha <= "00";
@@ -1165,6 +1341,8 @@ begin
 				ctrl_regDataReturn <= '0';
 				ctrl_pilhaRetorno <= '0';
 				ctrl_regJump <= '0';
+				ctrl_regError <= '0';
+				regError_out <= "00000000";
             when b5_4 =>
 				ctrl_regOp2 <= '0';
 				sel_MuxPilha <= "00";
@@ -1192,6 +1370,8 @@ begin
 				ctrl_regDataReturn <= '0';
 				ctrl_pilhaRetorno <= '0';
 				ctrl_regJump <= '0';
+				ctrl_regError <= '0';
+				regError_out <= "00000000";
             when b6 =>
 				ctrl_regPilha <= "10";
 				ctrl_regOverflow <= '1';
@@ -1227,6 +1407,8 @@ begin
 				ctrl_regDataReturn <= '0';
 				ctrl_pilhaRetorno <= '0';
 				ctrl_regJump <= '0';
+				ctrl_regError <= '0';
+				regError_out <= "00000000";
             when b7 =>
 				ctrl_regPilha <= "00";
 				ctrl_regOverflow <= '0';
@@ -1254,6 +1436,8 @@ begin
 				ctrl_regDataReturn <= '0';
 				ctrl_pilhaRetorno <= '0';
 				ctrl_regJump <= '0';
+				ctrl_regError <= '0';
+				regError_out <= "00000000";
             when b8 =>
 				ctrl_pilha <= '0';
 				ctrl_regPc <= '1';
@@ -1281,6 +1465,8 @@ begin
 				ctrl_regDataReturn <= '0';
 				ctrl_pilhaRetorno <= '0';
 				ctrl_regJump <= '0';
+				ctrl_regError <= '0';
+				regError_out <= "00000000";
             when co1 =>
 				ctrl_regPilha <= "01";
 				sel_muxTos <= '0';
@@ -1308,6 +1494,8 @@ begin
 				ctrl_regDataReturn <= '0';
 				ctrl_pilhaRetorno <= '0';
 				ctrl_regJump <= '0';
+				ctrl_regError <= '0';
+				regError_out <= "00000000";
             when co2 =>
 				ctrl_regPilha <= "00";
 				ctrl_regTos <= '1';
@@ -1335,6 +1523,8 @@ begin
 				ctrl_regDataReturn <= '0';
 				ctrl_pilhaRetorno <= '0';
 				ctrl_regJump <= '0';
+				ctrl_regError <= '0';
+				regError_out <= "00000000";
             when co3 =>
 				ctrl_regTos <= '0';
 				ctrl_regOp1 <= '1';
@@ -1362,6 +1552,8 @@ begin
 				ctrl_regDataReturn <= '0';
 				ctrl_pilhaRetorno <= '0';
 				ctrl_regJump <= '0';
+				ctrl_regError <= '0';
+				regError_out <= "00000000";
             when co4 =>
 				ctrl_regOp1 <= '0';
 				ctrl_regPilha <= "01";
@@ -1389,6 +1581,8 @@ begin
 				ctrl_regDataReturn <= '0';
 				ctrl_pilhaRetorno <= '0';
 				ctrl_regJump <= '0';
+				ctrl_regError <= '0';
+				regError_out <= "00000000";
             when co5 =>
 				ctrl_regPilha <= "00";
 				ctrl_regOp2 <= '1';
@@ -1416,6 +1610,8 @@ begin
 				ctrl_regDataReturn <= '0';
 				ctrl_pilhaRetorno <= '0';
 				ctrl_regJump <= '0';
+				ctrl_regError <= '0';
+				regError_out <= "00000000";
             when co6_1 =>
 				ctrl_regOp2 <= '0';
 				sel_Ula <= "1010";
@@ -1443,6 +1639,8 @@ begin
 				ctrl_regDataReturn <= '0';
 				ctrl_pilhaRetorno <= '0';
 				ctrl_regJump <= '0';
+				ctrl_regError <= '0';
+				regError_out <= "00000000";
             when co6_2 =>
 				ctrl_regOp2 <= '0';
 				sel_Ula <= "1011";
@@ -1470,6 +1668,8 @@ begin
 				ctrl_regDataReturn <= '0';
 				ctrl_pilhaRetorno <= '0';
 				ctrl_regJump <= '0';
+				ctrl_regError <= '0';
+				regError_out <= "00000000";
             when co6_3 =>
 				ctrl_regOp2 <= '0';
 				sel_Ula <= "1001";
@@ -1497,6 +1697,8 @@ begin
 				ctrl_regDataReturn <= '0';
 				ctrl_pilhaRetorno <= '0';
 				ctrl_regJump <= '0';
+				ctrl_regError <= '0';
+				regError_out <= "00000000";
             when co7 =>
 				ctrl_regComp <= '1';
 				-- -------------------------
@@ -1530,6 +1732,8 @@ begin
 				ctrl_regDataReturn <= '0';
 				ctrl_pilhaRetorno <= '0';
 				ctrl_regJump <= '0';
+				ctrl_regError <= '0';
+				regError_out <= "00000000";
             when co8 =>
 				ctrl_regComp <= '0';
 				sel_muxTos <= '0';
@@ -1557,6 +1761,8 @@ begin
 				ctrl_regDataReturn <= '0';
 				ctrl_pilhaRetorno <= '0';
 				ctrl_regJump <= '0';
+				ctrl_regError <= '0';
+				regError_out <= "00000000";
             when co9 =>
 				ctrl_regComp <= '0';
 				ctrl_regTos <= '1';
@@ -1584,6 +1790,8 @@ begin
 				ctrl_regDataReturn <= '0';
 				ctrl_pilhaRetorno <= '0';
 				ctrl_regJump <= '0';
+				ctrl_regError <= '0';
+				regError_out <= "00000000";
             when co10 =>
 				ctrl_regTos <= '0';
 				sel_muxPc <= '0';
@@ -1611,6 +1819,8 @@ begin
 				ctrl_regDataReturn <= '0';
 				ctrl_pilhaRetorno <= '0';
 				ctrl_regJump <= '0';
+				ctrl_regError <= '0';
+				regError_out <= "00000000";
             when co11 =>
 				ctrl_regPc <= '1';
 				-- -------------------------
@@ -1665,6 +1875,8 @@ begin
 				ctrl_regDataReturn <= '0';
 				ctrl_pilhaRetorno <= '0';
 				ctrl_regJump <= '0';
+				ctrl_regError <= '0';
+				regError_out <= "00000000";
             when jf2 =>
 				ctrl_regPc <= '1';
 				-- -------------------------
@@ -1692,6 +1904,8 @@ begin
 				ctrl_regDataReturn <= '0';
 				ctrl_pilhaRetorno <= '0';
 				ctrl_regJump <= '0';
+				ctrl_regError <= '0';
+				regError_out <= "00000000";
             when jf3 =>
 				ctrl_regPc <= '0';
 				ctrl_regJump <= '1';
@@ -1719,6 +1933,8 @@ begin
 				ctrl_pilhaFuncao <= '0';
 				ctrl_regDataReturn <= '0';
 				ctrl_pilhaRetorno <= '0';
+				ctrl_regError <= '0';
+				regError_out <= "00000000";
             when jf4 =>
 				ctrl_regJump <= '0';
 				ctrl_regPc <= '1';
@@ -1746,6 +1962,8 @@ begin
 				ctrl_pilhaFuncao <= '0';
 				ctrl_regDataReturn <= '0';
 				ctrl_pilhaRetorno <= '0';
+				ctrl_regError <= '0';
+				regError_out <= "00000000";
             when ja1 =>
 				sel_muxPc <= '0';
 				sel_MuxOp1 <= "00";
@@ -1773,6 +1991,8 @@ begin
 				ctrl_regDataReturn <= '0';
 				ctrl_pilhaRetorno <= '0';
 				ctrl_regJump <= '0';
+				ctrl_regError <= '0';
+				regError_out <= "00000000";
             when ja2 =>
 				ctrl_regPc <= '1';
 				-- -------------------------
@@ -1800,6 +2020,8 @@ begin
 				ctrl_regDataReturn <= '0';
 				ctrl_pilhaRetorno <= '0';
 				ctrl_regJump <= '0';
+				ctrl_regError <= '0';
+				regError_out <= "00000000";
             when ja3 =>
 				ctrl_regJump <= '1';
 				sel_muxPc <= '0';
@@ -1827,6 +2049,8 @@ begin
 				ctrl_pilhaFuncao <= '0';
 				ctrl_regDataReturn <= '0';
 				ctrl_pilhaRetorno <= '0';
+				ctrl_regError <= '0';
+				regError_out <= "00000000";
             when ja4 =>
 				ctrl_regJump <= '0';
 				ctrl_regPc <= '1';
@@ -1854,6 +2078,8 @@ begin
 				ctrl_pilhaFuncao <= '0';
 				ctrl_regDataReturn <= '0';
 				ctrl_pilhaRetorno <= '0';
+				ctrl_regError <= '0';
+				regError_out <= "00000000";
             when pj_FICA =>
 				sel_muxPc <= '0';
 				sel_MuxOp1 <= "00";
@@ -1881,6 +2107,8 @@ begin
 				ctrl_regDataReturn <= '0';
 				ctrl_pilhaRetorno <= '0';
 				ctrl_regJump <= '0';
+				ctrl_regError <= '0';
+				regError_out <= "00000000";
             when pj_PULA1 =>
 				sel_muxPc <= '0';
 				sel_MuxOp1 <= "00";
@@ -1908,6 +2136,8 @@ begin
 				ctrl_regDataReturn <= '0';
 				ctrl_pilhaRetorno <= '0';
 				ctrl_regJump <= '0';
+				ctrl_regError <= '0';
+				regError_out <= "00000000";
             when pj_PULA2 =>
 				ctrl_regPc <= '1';
 				-- -------------------------
@@ -1935,6 +2165,8 @@ begin
 				ctrl_regDataReturn <= '0';
 				ctrl_pilhaRetorno <= '0';
 				ctrl_regJump <= '0';
+				ctrl_regError <= '0';
+				regError_out <= "00000000";
             when pj_PULA3 =>
 				ctrl_regPc <= '0';
 				ctrl_regJump <= '1';
@@ -1962,6 +2194,8 @@ begin
 				ctrl_pilhaFuncao <= '0';
 				ctrl_regDataReturn <= '0';
 				ctrl_pilhaRetorno <= '0';
+				ctrl_regError <= '0';
+				regError_out <= "00000000";
             when pj_FIM =>
 				ctrl_regJump <= '0';
 				ctrl_regPc <= '1';
@@ -1989,6 +2223,8 @@ begin
 				ctrl_pilhaFuncao <= '0';
 				ctrl_regDataReturn <= '0';
 				ctrl_pilhaRetorno <= '0';
+				ctrl_regError <= '0';
+				regError_out <= "00000000";
             when cf1 =>
 				sel_soma_sub <= '0';
 				sel_muxPc <= '0';
@@ -2016,6 +2252,8 @@ begin
 				ctrl_regDataReturn <= '0';
 				ctrl_pilhaRetorno <= '0';
 				ctrl_regJump <= '0';
+				ctrl_regError <= '0';
+				regError_out <= "00000000";
             when cf2 =>
 				ctrl_regPc <= '1';
 				ctrl_regTosFuncao <= '1';
@@ -2043,6 +2281,8 @@ begin
 				ctrl_regDataReturn <= '0';
 				ctrl_pilhaRetorno <= '0';
 				ctrl_regJump <= '0';
+				ctrl_regError <= '0';
+				regError_out <= "00000000";
             when cf3 =>
 				ctrl_regPc <= '0';
 				ctrl_regTosFuncao <= '0';
@@ -2070,6 +2310,8 @@ begin
 				ctrl_pilhaFuncao <= '0';
 				ctrl_regDataReturn <= '0';
 				ctrl_pilhaRetorno <= '0';
+				ctrl_regError <= '0';
+				regError_out <= "00000000";
             when cf4 =>
 				ctrl_regJump <= '0';
 				sel_muxPc <= '0';
@@ -2097,6 +2339,8 @@ begin
 				ctrl_pilhaFuncao <= '0';
 				ctrl_regDataReturn <= '0';
 				ctrl_pilhaRetorno <= '0';
+				ctrl_regError <= '0';
+				regError_out <= "00000000";
             when cf5 =>
 				ctrl_regPc <= '1';
 				-- -------------------------
@@ -2124,6 +2368,8 @@ begin
 				ctrl_pilhaFuncao <= '0';
 				ctrl_regDataReturn <= '0';
 				ctrl_pilhaRetorno <= '0';
+				ctrl_regError <= '0';
+				regError_out <= "00000000";
             when cf6 =>
 				ctrl_regPc <= '0';
 				ctrl_pilhaFuncao <= '1';
@@ -2151,6 +2397,8 @@ begin
 				sel_MuxPilha <= "00";
 				sel_muxTos <= '0';
 				ctrl_regDataReturn <= '0';
+				ctrl_regError <= '0';
+				regError_out <= "00000000";
             when cf7 =>
 				ctrl_pilhaFuncao <= '0';
 				ctrl_pilhaRetorno <= '0';
@@ -2178,6 +2426,8 @@ begin
 				sel_MuxPilha <= "00";
 				sel_muxTos <= '0';
 				ctrl_regDataReturn <= '0';
+				ctrl_regError <= '0';
+				regError_out <= "00000000";
             when rv1 =>
 				sel_muxPc <= '1';
 				sel_muxTos <= '1';
@@ -2205,6 +2455,8 @@ begin
 				ctrl_pilhaFuncao <= '0';
 				ctrl_pilhaRetorno <= '0';
 				ctrl_regJump <= '0';
+				ctrl_regError <= '0';
+				regError_out <= "00000000";
             when rv2 =>
 				ctrl_regPilha <= "00";
 				ctrl_regDataReturn <= '1';
@@ -2232,6 +2484,8 @@ begin
 				ctrl_pilhaFuncao <= '0';
 				ctrl_pilhaRetorno <= '0';
 				ctrl_regJump <= '0';
+				ctrl_regError <= '0';
+				regError_out <= "00000000";
             when rv3 =>
 				ctrl_regPc <= '0';
 				ctrl_regDataReturn <= '0';
@@ -2259,6 +2513,8 @@ begin
 				ctrl_pilhaFuncao <= '0';
 				ctrl_pilhaRetorno <= '0';
 				ctrl_regJump <= '0';
+				ctrl_regError <= '0';
+				regError_out <= "00000000";
 			when rv4 =>
 				ctrl_regTosFuncao <= '1';
 				ctrl_regTos <= '1';
@@ -2286,6 +2542,8 @@ begin
 				ctrl_pilhaFuncao <= '0';
 				ctrl_pilhaRetorno <= '0';
 				ctrl_regJump <= '0';
+				ctrl_regError <= '0';
+				regError_out <= "00000000";
 			when rv5 =>
 				ctrl_regTosFuncao <= '0';
 				ctrl_regTos <= '0';
@@ -2313,6 +2571,8 @@ begin
 				ctrl_pilhaFuncao <= '0';
 				ctrl_pilhaRetorno <= '0';
 				ctrl_regJump <= '0';
+				ctrl_regError <= '0';
+				regError_out <= "00000000";
 		end case;
 	end process;
 		-- ================================================================================================================================================
