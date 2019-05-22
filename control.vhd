@@ -216,7 +216,7 @@ begin
 				-- ====================================
 				-- BINARY_
 				when b1 =>
-					if(entrada_regTos=std_logic_vector(to_unsigned(0, ADDR_WIDTH_IN))) then
+					if((entrada_regTos=std_logic_vector(to_unsigned(0, ADDR_WIDTH_IN))) OR (entrada_regTos=std_logic_vector(to_unsigned(1, ADDR_WIDTH_IN)))) then
 						errorCode <= std_logic_vector(to_unsigned(255, DATA_WIDTH_IN));
 						atual <= error_1;
 					else
@@ -1848,6 +1848,8 @@ begin
 				ctrl_regDataReturn <= '0';
 				ctrl_pilhaRetorno <= '0';
 				ctrl_regJump <= '0';
+				ctrl_regError <= '0';
+				regError_out <= "00000000";
             when jf1 =>
 				sel_muxPc <= '0';
 				sel_MuxOp1 <= "00";
