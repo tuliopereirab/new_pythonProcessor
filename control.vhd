@@ -89,6 +89,10 @@ begin
 							atual <= pj_PULA3;
 						when "00110000" =>		-- POP_JUMP_IF_FALSE
 							atual <= pj_PULA3;
+						when "00001111"	=>		-- STORE_FAST
+							atual <= sf3;
+						when "00001101" =>		-- LOAD_FAST
+							atual <= lf3;
 						when others =>
 							atual <= first;
 					end case;
@@ -154,7 +158,7 @@ begin
 				when lf1 =>
 					atual <= lf2;
 				when lf2 =>
-					atual <= lf3;
+					atual <= AUX_0;
 				when lf3 =>
 					atual <= lf4;
 				when lf4 =>
@@ -172,7 +176,7 @@ begin
 				when sf1 =>
 					atual <= sf2;
 				when sf2 =>
-					atual <= sf3;
+					atual <= AUX_0;
 				when sf3 =>
 					atual <= sf4;
 				when sf4 =>
