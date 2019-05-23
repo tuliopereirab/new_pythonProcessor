@@ -366,7 +366,7 @@ begin
 		end if;
 	end process;
 
-	process(atual, sEntrada_regInstr, sEntrada_regArg)
+	process(atual, sEntrada_regInstr, sEntrada_regArg, errorCode)
 	begin
 		case atual is
 			when AUX_0 =>
