@@ -18,7 +18,8 @@ entity pythonProcessor is
         osc_clk                     : in std_logic;
         reset_n                     : in std_logic;
         memExt_read_out             : out std_logic_vector((DATA_WIDTH-1) downto 0);
-        error_out                   : out std_logic_vector((DATA_WIDTH-1) downto 0)
+        error_out                   : out std_logic_vector((DATA_WIDTH-1) downto 0);
+        led                         : out std_logic_vector(3 downto 0)
     );
 end entity;
 
@@ -328,6 +329,7 @@ end component;
 
 -------------------------------------------------------------------------------------------------
 begin
+    led <= w_regPc_out(3 downto 0);
     memExt_read_out <= w_memExt_out;
     error_out <= w_regError_out;
     clk_geral <= osc_clk;
