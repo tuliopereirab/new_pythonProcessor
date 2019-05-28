@@ -75,11 +75,12 @@ signal sEntrada_regInstr, sEntrada_regArg 	: std_logic_vector(7 downto 0);
 begin
 	sEntrada_regArg <= entrada_regArg;
 	sEntrada_regInstr <= entrada_regInstr;
-
+	--sEntrada_regComp <= entrada_regComp;
+	--sEntrada_regOverflow <= entrada_regOverflow;
 	saida_reset <= reset_in;
 
 
-	process(clk, reset_in, entrada_regComp, sEntrada_regArg, sEntrada_regInstr, entrada_regOverflow, entrada_regTos)
+	process(clk, reset_in, entrada_regComp, sEntrada_regArg, sEntrada_regInstr, entrada_regOverflow, entrada_regTos, errorCode)
 	begin
 		if(reset_in='1') then
 			atual <= first;
@@ -152,7 +153,7 @@ begin
 						when "00000000" =>		-- ignorar opCode contendo somente zeros: significa que o programa acabou de executar
 							atual <= first;
 						when others =>
-							errorCode <= "00111100";
+							errorCode <= std_logic_vector(to_unsigned(60, DATA_WIDTH_IN));
 							atual <= error_1;
 						end case;
 			-- ====================================
@@ -256,9 +257,27 @@ begin
 				when b6 =>
 					atual <= b7;
 				when b7 =>
+					if(entrada_regOverflow='1') then
+						case sEntrada_regInstr is
+							when "00100000" =>				-- verflow add
+								errorCode <= std_logic_vector(to_unsigned(9, DATA_WIDTH_IN));
+							when "00100001" =>				-- overflow subtract
+								errorCode <= std_logic_vector(to_unsigned(10, DATA_WIDTH_IN));
+							when "00100010" =>				-- overflow multiply
+								errorCode <= std_logic_vector(to_unsigned(11, DATA_WIDTH_IN));
+							when "00100011" =>			-- overflow divide
+								errorCode <= std_logic_vector(to_unsigned(12, DATA_WIDTH_IN));
+							when others => 			-- default
+								errorCode <= std_logic_vector(to_unsigned(0, DATA_WIDTH_IN));
+						end case;
+					end if;
 					atual <= b8;
 				when b8 =>
-					atual <= first;
+					if(entrada_regOverflow='1') then
+						atual <= error_1;
+					else
+						atual <= first;
+					end if;
 				-- ====================================
 				-- COMPARE_OP
 				when co1 =>
