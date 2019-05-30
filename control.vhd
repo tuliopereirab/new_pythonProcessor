@@ -63,7 +63,7 @@ end entity;
 architecture arc_control of control is
 
 -- lc (LOAD_CONST), lf (LOAD_FAST), sf (STORE_FAST), co (COMPARE_OP), ja (JUMP_ABSOLUTE), jf (JUMP_FORWARD), b (BINARY_), pj_stay (FICA!), pj_jump (PULA!), pj_end (FINALIZA)
-type state_type is (first, AUX, AUX_0, AUX_1, error_1, error_2, error_3, cf1, cf2, cf3, cf4, cf5, cf6, cf7, lc1, lc2, lc3, lc4, lf1, lf2, lf3, lf4, lf5, lf6, lf7, lf8, b1, b2, b3, b4, b5_1, b5_2, b5_3, b5_4, b6, b7, b8, sf1, sf2, sf3, sf4, sf5, sf6, sf7, sf8, co1, co2, co3, co4, co5, co6_1, co6_2, co6_3, co7, co8, co9, co10, co11, jf1, jf2, jf3, jf4, rv1, rv2, rv3, rv4, rv5, ja1, ja2, ja3, ja4, pj_FICA, pj_FICA2, pj_PULA1, pj_PULA2, pj_PULA3, pj_PULA4);
+type state_type is (first, AUX, AUX_0, AUX_1, error_1, error_2, error_3, cf1, cf2, cf3, cf4, cf5, cf6, cf7, lc1, lc2, lc3, lc4, lf1, lf2, lf3, lf4, lf5, lf6, lf7, lf8, b1, b2, b3, b4, b5_1, b5_2, b5_3, b5_4, b5_5, b5_6, b5_7, b6, b7, b8, sf1, sf2, sf3, sf4, sf5, sf6, sf7, sf8, co1, co2, co3, co4, co5, co6_1, co6_2, co6_3, co7, co8, co9, co10, co11, jf1, jf2, jf3, jf4, rv1, rv2, rv3, rv4, rv5, ja1, ja2, ja3, ja4, pj_FICA, pj_FICA2, pj_PULA1, pj_PULA2, pj_PULA3, pj_PULA4);
 signal atual 	: state_type;
 -- signal signal_one	: integer	:= 1;
 -- signal signal_zero	: integer := 0;
@@ -145,6 +145,12 @@ begin
 						when "00100010" =>		-- BINARY_MULTIPLY
 							atual <= b1;
 						when "00100011" =>		-- BINARY_DIVIDE
+							atual <= b1;
+						when "00101101" =>		-- BINARY_AND
+							atual <= b1;
+						when "00101110" =>		-- BINARY_OR
+							atual <= b1;
+						when "00101111" =>		-- BINARY_XOR
 							atual <= b1;
 						when "01100000" =>		-- CALL_FUNCTION
 							atual <= cf1;
@@ -236,13 +242,19 @@ begin
 					atual <= b4;
 				when b4 =>
 					if(sEntrada_regInstr="00100000") then
-						atual <= b5_1;
+						atual <= b5_1;			-- add
 					elsif(sEntrada_regInstr="00100001") then
-						atual <= b5_2;
+						atual <= b5_2;			-- sub
 					elsif(sEntrada_regInstr="00100010") then
-						atual <= b5_3;
+						atual <= b5_3;			-- mult
 					elsif(sEntrada_regInstr="00100011") then
-						atual <= b5_4;
+						atual <= b5_4;			-- div
+					elsif(sEntrada_regInstr="00101101") then
+						atual <= b5_5;			-- and
+					elsif(sEntrada_regInstr="00101110") then
+						atual <= b5_6;			-- or
+					elsif(sEntrada_regInstr="00101111") then
+						atual <= b5_7;			-- xor
 					else
 						atual <= b5_1;         -- caso haja um erro, executará uma soma
 					end if;
@@ -270,14 +282,12 @@ begin
 							when others => 			-- default
 								errorCode <= std_logic_vector(to_unsigned(0, DATA_WIDTH_IN));
 						end case;
-					end if;
-					atual <= b8;
-				when b8 =>
-					if(entrada_regOverflow='1') then
-						atual <= error_1;
+						atual <= error_1;		-- inicia error_1 que já irá incrementar o valor de PC
 					else
-						atual <= first;
+						atual <= b8;			-- continua o algoritmo que também vai incrementar PC
 					end if;
+				when b8 =>
+					atual <= first;
 				-- ====================================
 				-- COMPARE_OP
 				when co1 =>
@@ -510,7 +520,7 @@ begin
 				regError_out <= errorCode;
 				sel_MuxOp1 <= "00";
 				sel_MuxOp2 <= "00";
-				sel_Ula <= "0000";
+				sel_Ula <= "0110";
 				-- -------------------------
 				ctrl_regError <= '0';
 				ctrl_regInstr <= '0';
@@ -542,7 +552,7 @@ begin
 				-- -------------------------
 				sel_MuxOp1 <= "00";
 				sel_MuxOp2 <= "00";
-				sel_Ula <= "0000";
+				sel_Ula <= "0110";
 				ctrl_regInstr <= '0';
 				ctrl_regArg <= '0';
 				ctrl_regOp1 <= '0';
@@ -571,7 +581,7 @@ begin
 				-- -------------------------
 				sel_MuxOp1 <= "00";
 				sel_MuxOp2 <= "00";
-				sel_Ula <= "0000";
+				sel_Ula <= "0110";
 				ctrl_regInstr <= '0';
 				ctrl_regArg <= '0';
 				ctrl_regOp1 <= '0';
@@ -1405,6 +1415,93 @@ begin
 				ctrl_regJump <= '0';
 				ctrl_regError <= '0';
 				regError_out <= "00000000";
+			when b5_5 =>		-- and
+				ctrl_regOp2 <= '0';
+				sel_MuxPilha <= "00";
+				sel_Ula <= "1101";
+				-- -------------------------
+				ctrl_regPilha <= "00";
+				sel_MuxOp1 <= "11";
+				sel_MuxOp2 <= "11";
+				ctrl_regOp1 <= '0';
+				ctrl_regTos <= '0';
+				sel_muxTos <= '0';
+				ctrl_regInstr <= '0';
+				ctrl_regArg <= '0';
+				ctrl_regPc <= '0';
+				ctrl_regComp <= '0';
+				ctrl_regOverflow <= '0';
+				ctrl_regEnd <= '0';
+				ctrl_regMemExt <= "00";
+				ctrl_pilha <= '0';
+				ctrl_memExt <= '0';
+				sel_soma_sub <= '0';
+				sel_muxPc <= '0';
+				ctrl_regTosFuncao <= '0';
+				ctrl_pilhaFuncao <= '0';
+				ctrl_regDataReturn <= '0';
+				ctrl_pilhaRetorno <= '0';
+				ctrl_regJump <= '0';
+				ctrl_regError <= '0';
+				regError_out <= "00000000";
+			when b5_6 =>		-- or
+				ctrl_regOp2 <= '0';
+				sel_MuxPilha <= "00";
+				sel_Ula <= "1110";
+				-- -------------------------
+				ctrl_regPilha <= "00";
+				sel_MuxOp1 <= "11";
+				sel_MuxOp2 <= "11";
+				ctrl_regOp1 <= '0';
+				ctrl_regTos <= '0';
+				sel_muxTos <= '0';
+				ctrl_regInstr <= '0';
+				ctrl_regArg <= '0';
+				ctrl_regPc <= '0';
+				ctrl_regComp <= '0';
+				ctrl_regOverflow <= '0';
+				ctrl_regEnd <= '0';
+				ctrl_regMemExt <= "00";
+				ctrl_pilha <= '0';
+				ctrl_memExt <= '0';
+				sel_soma_sub <= '0';
+				sel_muxPc <= '0';
+				ctrl_regTosFuncao <= '0';
+				ctrl_pilhaFuncao <= '0';
+				ctrl_regDataReturn <= '0';
+				ctrl_pilhaRetorno <= '0';
+				ctrl_regJump <= '0';
+				ctrl_regError <= '0';
+				regError_out <= "00000000";
+			when b5_7 =>		-- xor
+				ctrl_regOp2 <= '0';
+				sel_MuxPilha <= "00";
+				sel_Ula <= "1111";
+				-- -------------------------
+				ctrl_regPilha <= "00";
+				sel_MuxOp1 <= "11";
+				sel_MuxOp2 <= "11";
+				ctrl_regOp1 <= '0';
+				ctrl_regTos <= '0';
+				sel_muxTos <= '0';
+				ctrl_regInstr <= '0';
+				ctrl_regArg <= '0';
+				ctrl_regPc <= '0';
+				ctrl_regComp <= '0';
+				ctrl_regOverflow <= '0';
+				ctrl_regEnd <= '0';
+				ctrl_regMemExt <= "00";
+				ctrl_pilha <= '0';
+				ctrl_memExt <= '0';
+				sel_soma_sub <= '0';
+				sel_muxPc <= '0';
+				ctrl_regTosFuncao <= '0';
+				ctrl_pilhaFuncao <= '0';
+				ctrl_regDataReturn <= '0';
+				ctrl_pilhaRetorno <= '0';
+				ctrl_regJump <= '0';
+				ctrl_regError <= '0';
+				regError_out <= "00000000";
             when b6 =>
 				ctrl_regPilha <= "10";
 				ctrl_regOverflow <= '1';
@@ -1417,8 +1514,16 @@ begin
 					sel_Ula <= "0001";
 				elsif(sEntrada_regInstr="00100010") then	-- multiply
 					sel_Ula <= "0010";
-				else 								-- divide
+				elsif(sEntrada_regInstr="00100011") then	-- divide
 					sel_Ula <= "0011";
+				elsif(sEntrada_regInstr="00101101") then	-- and
+					sel_Ula <= "1101";
+				elsif(sEntrada_regInstr="00101110") then	-- or
+					sel_Ula <= "1110";
+				elsif(sEntrada_regInstr="00101111") then	-- xor
+					sel_Ula <= "1111";
+				else
+					sel_Ula <= "0000";
 				end if;
 				sel_MuxOp1 <= "11";
 				sel_MuxOp2 <= "11";
