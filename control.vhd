@@ -63,7 +63,7 @@ end entity;
 architecture arc_control of control is
 
 -- lc (LOAD_CONST), lf (LOAD_FAST), sf (STORE_FAST), co (COMPARE_OP), ja (JUMP_ABSOLUTE), jf (JUMP_FORWARD), b (BINARY_), pj_stay (FICA!), pj_jump (PULA!), pj_end (FINALIZA)
-type state_type is (first, AUX, AUX_0, AUX_1, error_1, error_2, error_3, cf1, cf2, cf3, cf4, cf5, cf6, cf7, lc1, lc2, lc3, lc4, lf1, lf2, lf3, lf4, lf5, lf6, lf7, lf8, b1, b2, b3, b4, b5_1, b5_2, b5_3, b5_4, b5_5, b5_6, b5_7, b6, b7, b8, sf1, sf2, sf3, sf4, sf5, sf6, sf7, sf8, co1, co2, co3, co4, co5, co6_1, co6_2, co6_3, co7, co8, co9, co10, co11, jf1, jf2, jf3, jf4, rv1, rv2, rv3, rv4, rv5, ja1, ja2, ja3, ja4, pj_FICA, pj_FICA2, pj_PULA1, pj_PULA2, pj_PULA3, pj_PULA4);
+type state_type is (first, AUX, AUX_0, AUX_1, error_1, error_2, error_3, u1, u2, u3_1, u4, u5, u6, cf1, cf2, cf3, cf4, cf5, cf6, cf7, lc1, lc2, lc3, lc4, lf1, lf2, lf3, lf4, lf5, lf6, lf7, lf8, b1, b2, b3, b4, b5_1, b5_2, b5_3, b5_4, b5_5, b5_6, b5_7, b6, b7, b8, sf1, sf2, sf3, sf4, sf5, sf6, sf7, sf8, co1, co2, co3, co4, co5, co6_1, co6_2, co6_3, co7, co8, co9, co10, co11, jf1, jf2, jf3, jf4, rv1, rv2, rv3, rv4, rv5, ja1, ja2, ja3, ja4, pj_FICA, pj_FICA2, pj_PULA1, pj_PULA2, pj_PULA3, pj_PULA4);
 signal atual 	: state_type;
 -- signal signal_one	: integer	:= 1;
 -- signal signal_zero	: integer := 0;
@@ -152,6 +152,8 @@ begin
 							atual <= b1;
 						when "00101111" =>		-- BINARY_XOR
 							atual <= b1;
+						when "01111100" =>		-- UNARY_NOT
+							atual <= u1;
 						when "01100000" =>		-- CALL_FUNCTION
 							atual <= cf1;
 						when "01100001" =>		-- RETURN VALUE
@@ -287,6 +289,25 @@ begin
 						atual <= b8;			-- continua o algoritmo que também vai incrementar PC
 					end if;
 				when b8 =>
+					atual <= first;
+				-- ====================================
+				-- UNARY_
+				when u1 =>
+					if(entrada_regTos=std_logic_vector(to_unsigned(0, ADDR_WIDTH_IN))) then
+						errorCode <= std_logic_vector(to_unsigned(255, DATA_WIDTH_IN));
+						atual<= error_1;
+					else
+						atual <= u2;
+					end if;
+				when u2 =>
+					atual <= u3_1;
+				when u3_1 => 			-- not
+					atual <= u4;
+				when u4 =>
+					atual <= u5;
+				when u5 =>
+					atual <= u6;
+				when u6 =>
 					atual <= first;
 				-- ====================================
 				-- COMPARE_OP
@@ -1598,6 +1619,180 @@ begin
 				ctrl_regMemExt <= "00";
 				ctrl_memExt <= '0';
 				sel_soma_sub <= '0';
+				ctrl_regTosFuncao <= '0';
+				ctrl_pilhaFuncao <= '0';
+				ctrl_regDataReturn <= '0';
+				ctrl_pilhaRetorno <= '0';
+				ctrl_regJump <= '0';
+				ctrl_regError <= '0';
+				regError_out <= "00000000";
+			when u1 =>
+				ctrl_regInstr <= '0';
+				ctrl_regArg <= '0';
+				ctrl_regPilha <= "01";
+				-- -------------------------
+				ctrl_regPc <= '0';
+				ctrl_regOp1 <= '0';
+				ctrl_regOp2 <= '0';
+				ctrl_regComp <= '0';
+				ctrl_regOverflow <= '0';
+				ctrl_regTos <= '0';
+				ctrl_regEnd <= '0';
+				ctrl_regMemExt <= "00";
+				ctrl_pilha <= '0';
+				ctrl_memExt <= '0';
+				sel_MuxOp1 <= "00";
+				sel_MuxOp2 <= "00";
+				sel_MuxPilha <= "00";
+				sel_Ula <= "0000";
+				sel_soma_sub <= '0';
+				sel_muxPc <= '0';
+				sel_muxTos <= '0';
+				ctrl_regTosFuncao <= '0';
+				ctrl_pilhaFuncao <= '0';
+				ctrl_regDataReturn <= '0';
+				ctrl_pilhaRetorno <= '0';
+				ctrl_regJump <= '0';
+				ctrl_regError <= '0';
+				regError_out <= "00000000";
+			when u2 =>
+				ctrl_regPilha <= "00";
+				ctrl_regOp1 <= '1';
+				sel_MuxOp1 <= "11";
+				-- -------------------------
+				ctrl_regInstr <= '0';
+				ctrl_regArg <= '0';
+				ctrl_regPc <= '0';
+				ctrl_regOp2 <= '0';
+				ctrl_regComp <= '0';
+				ctrl_regOverflow <= '0';
+				ctrl_regTos <= '0';
+				ctrl_regEnd <= '0';
+				ctrl_regMemExt <= "00";
+				ctrl_pilha <= '0';
+				ctrl_memExt <= '0';
+				sel_MuxOp2 <= "00";
+				sel_MuxPilha <= "00";
+				sel_Ula <= "0000";
+				sel_soma_sub <= '0';
+				sel_muxPc <= '0';
+				sel_muxTos <= '0';
+				ctrl_regTosFuncao <= '0';
+				ctrl_pilhaFuncao <= '0';
+				ctrl_regDataReturn <= '0';
+				ctrl_pilhaRetorno <= '0';
+				ctrl_regJump <= '0';
+				ctrl_regError <= '0';
+				regError_out <= "00000000";
+			when u3_1 =>
+				ctrl_regOp1 <= '0';
+				sel_MuxPilha <= "00";
+				sel_Ula <= "1100";
+				-- -------------------------
+				sel_MuxOp1 <= "11";
+				ctrl_regPilha <= "00";
+				ctrl_regInstr <= '0';
+				ctrl_regArg <= '0';
+				ctrl_regPc <= '0';
+				ctrl_regOp2 <= '0';
+				ctrl_regComp <= '0';
+				ctrl_regOverflow <= '0';
+				ctrl_regTos <= '0';
+				ctrl_regEnd <= '0';
+				ctrl_regMemExt <= "00";
+				ctrl_pilha <= '0';
+				ctrl_memExt <= '0';
+				sel_MuxOp2 <= "00";
+				sel_soma_sub <= '0';
+				sel_muxPc <= '0';
+				sel_muxTos <= '0';
+				ctrl_regTosFuncao <= '0';
+				ctrl_pilhaFuncao <= '0';
+				ctrl_regDataReturn <= '0';
+				ctrl_pilhaRetorno <= '0';
+				ctrl_regJump <= '0';
+				ctrl_regError <= '0';
+				regError_out <= "00000000";
+			when u4 =>
+				ctrl_regPilha <= "10";
+				-- -------------------------
+				ctrl_regOp1 <= '0';
+				sel_MuxPilha <= "00";
+				sel_Ula <= "1100";
+				sel_MuxOp1 <= "11";
+				ctrl_regInstr <= '0';
+				ctrl_regArg <= '0';
+				ctrl_regPc <= '0';
+				ctrl_regOp2 <= '0';
+				ctrl_regComp <= '0';
+				ctrl_regOverflow <= '0';
+				ctrl_regTos <= '0';
+				ctrl_regEnd <= '0';
+				ctrl_regMemExt <= "00";
+				ctrl_pilha <= '0';
+				ctrl_memExt <= '0';
+				sel_MuxOp2 <= "00";
+				sel_soma_sub <= '0';
+				sel_muxPc <= '0';
+				sel_muxTos <= '0';
+				ctrl_regTosFuncao <= '0';
+				ctrl_pilhaFuncao <= '0';
+				ctrl_regDataReturn <= '0';
+				ctrl_pilhaRetorno <= '0';
+				ctrl_regJump <= '0';
+				ctrl_regError <= '0';
+				regError_out <= "00000000";
+			when u5 =>
+				ctrl_regPilha <= "00";
+				ctrl_pilha <= '1';
+				sel_muxPc <= '0';
+				sel_MuxOp1 <= "00";
+				sel_MuxOp2 <= "00";
+				sel_Ula <= "0110";
+				-- -------------------------
+				ctrl_regOp1 <= '0';
+				sel_MuxPilha <= "00";
+				ctrl_regInstr <= '0';
+				ctrl_regArg <= '0';
+				ctrl_regPc <= '0';
+				ctrl_regOp2 <= '0';
+				ctrl_regComp <= '0';
+				ctrl_regOverflow <= '0';
+				ctrl_regTos <= '0';
+				ctrl_regEnd <= '0';
+				ctrl_regMemExt <= "00";
+				ctrl_memExt <= '0';
+				sel_soma_sub <= '0';
+				sel_muxTos <= '0';
+				ctrl_regTosFuncao <= '0';
+				ctrl_pilhaFuncao <= '0';
+				ctrl_regDataReturn <= '0';
+				ctrl_pilhaRetorno <= '0';
+				ctrl_regJump <= '0';
+				ctrl_regError <= '0';
+				regError_out <= "00000000";
+			when u6 =>
+				ctrl_pilha <= '0';
+				ctrl_regPc <= '1';
+				-- -------------------------
+				sel_muxPc <= '0';
+				sel_MuxOp1 <= "00";
+				sel_MuxOp2 <= "00";
+				sel_Ula <= "0110";
+				ctrl_regPilha <= "00";
+				ctrl_regOp1 <= '0';
+				sel_MuxPilha <= "00";
+				ctrl_regInstr <= '0';
+				ctrl_regArg <= '0';
+				ctrl_regOp2 <= '0';
+				ctrl_regComp <= '0';
+				ctrl_regOverflow <= '0';
+				ctrl_regTos <= '0';
+				ctrl_regEnd <= '0';
+				ctrl_regMemExt <= "00";
+				ctrl_memExt <= '0';
+				sel_soma_sub <= '0';
+				sel_muxTos <= '0';
 				ctrl_regTosFuncao <= '0';
 				ctrl_pilhaFuncao <= '0';
 				ctrl_regDataReturn <= '0';
