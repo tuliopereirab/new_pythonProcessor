@@ -268,6 +268,12 @@ begin
 					atual <= b6;
 				when b5_4 =>
 					atual <= b6;
+				when b5_5 =>
+					atual <= b6;
+				when b5_6 =>
+					atual <= b6;
+				when b5_7 =>
+					atual <= b6;
 				when b6 =>
 					atual <= b7;
 				when b7 =>
