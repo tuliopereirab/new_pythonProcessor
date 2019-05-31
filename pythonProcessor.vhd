@@ -16,7 +16,8 @@ entity pythonProcessor is
     port
     (
         osc_clk                     : in std_logic;
-        reset_n                     : in std_logic;
+        --reset_n                     : in std_logic;
+        button                      : in std_logic_vector(3 downto 0);
         memExt_read_out             : out std_logic_vector((DATA_WIDTH-1) downto 0);
         error_out                   : out std_logic_vector((DATA_WIDTH-1) downto 0);
         instr_out                   : out std_logic_vector((ADDR_WIDTH_FUNCTIONS-1) downto 0);
@@ -331,11 +332,12 @@ end component;
 -------------------------------------------------------------------------------------------------
 begin
     instr_out <= w_regInstr_out;
-    led <= w_regPc_out(3 downto 0);
+    led <= NOT w_regPc_out(3 downto 0);
     memExt_read_out <= w_memExt_out;
     error_out <= w_regError_out;
     clk_geral <= osc_clk;
-    reset_geral <= reset_n;
+    --reset_geral <= reset_n;
+    reset_geral <= NOT button(0);
     zero_std_vector <= std_logic_vector(to_unsigned(0, ADDR_MAX_WIDTH));
     one_std_vector <= std_logic_vector(to_unsigned(1, ADDR_MAX_WIDTH));
 
