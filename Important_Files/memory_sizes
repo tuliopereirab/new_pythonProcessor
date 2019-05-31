@@ -1,0 +1,31 @@
+pilha retorno função
+    - tamWord = tamEnd(memInstr)
+    - bits/endereço = 8 (256 conj)
+
+pilha retorno TOS
+    - tamWord = tamEnd(pilha)
+    - bits/endereço = 8 (256 conj)
+
+pilha
+    - tamWord = 8
+    - bits/endereço = ***
+        - 8 bits = 2.048 bits de memória
+        - 10 bits = 8.192 bits de memória
+        - 12 bits = 32.768 bits de memória
+        - 16 bits = 524.288 bits de memória
+
+memExt
+    - tamWord = 8
+    - bits/endereço = ***
+        - 8 bits = 2.048 bits de memória
+        - 10 bits = 8.192 bits de memória
+        - 12 bits = 32.768 bits de memória
+        - 16 bits = 524.288 bits de memória
+
+memInstr
+    - tamWord = 16 bits
+    - bits/endereço = ***
+        - 8 bits = 4.096 bits de memória
+        - 10 bits = 16.384 bits de memória
+        - 12 bits = 65.536 bits de memória
+        - 16 bits = 1.048.576 bits de memória

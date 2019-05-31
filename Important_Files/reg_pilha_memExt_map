@@ -1,0 +1,6 @@
+2 bits = 00
+
+01 -> enable read
+10 -> enable write
+11 -> enable both
+00 -> desable both

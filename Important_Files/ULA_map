@@ -1,0 +1,18 @@
+ULA:
+
+0000 -> +
+0001 -> -
+0010 -> *
+0011 -> /
+0100 -> +0 data_in_1      (regJump)
+0101 -> +0 data_in_2      (regPc, regArg)
+0110 -> +1    (sempre data_in_2)
+0111 -> -1    (sempre data_in_2)
+1000 -> +2 data_in_2
+1001 -> igual
+1010 -> menor que
+1011 -> maior que
+1100 -> NOT             -> NÃO UTILIZADO
+1101 -> AND
+1110 -> OR
+1111 -> XOR

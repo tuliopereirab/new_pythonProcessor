@@ -1,0 +1,56 @@
+REG 1 IN // 1 OUT
+    - clk
+    - ctrl_in
+    - data_in
+    - data_out
+    
+REG 1 IN // 1 OUT
+    - clk
+    - ctrl_in
+    - data_in   - std_logic
+    - data_out  - std_logic
+
+REG 2 IN // 1 OUT
+    - clk
+    - ctrl_in
+    - data_in_1
+    - data_in_2
+    - data_out
+    
+REG 2 IN // 1 OUT   -> RESET
+    - clk
+    - ctrl_in
+    - reset_in  -> std_logic
+    - data_in_1
+    - data_out
+
+REG 2 IN // 2 OUT
+    - clk
+    - ctrl_in
+    - data_in_1
+    - data_in_2
+    - data_out_1
+    - data_out_2
+
+MUX 4 IN // 1 OUT
+    - ctrl_in
+    - data_in_1
+    - data_in_2
+    - data_in_3
+    - data_in_4
+    - data_out
+
+MUX 2 IN // 1 OUT
+    - ctrl_in
+    - data_in_1
+    - data_in_2
+    - data_out
+
+MEMÓRIAS
+    - clk
+    - ctrl_in
+    - addr_in
+    - data_in
+    - data_out
+
+MEMÓRIA INSTRUÇÃO

@@ -1,0 +1,39 @@
+LISTA DE INTRUÇÕES:
+00001100    - LOAD_CONST            - controle desenhado                - FUNCIONAL
+00001101    - LOAD_FAST             - controle desenhado
+00001110    - LOAD_GLOBAL           -
+
+00001111    - STORE_FAST            - controle desenhado                - FUNCIONAL
+
+    - PRINT_ITEM:
+    - PRINT_NEWLINE
+
+00000010    - COMPARE_OP            - controle desenhado                - FUNCIONAL
+        - 00011000 - igual
+        - 00011001 - menor
+        - 00011010 - maior
+
+00110000    - POP_JUMP_IF_FALSE     - controle desenhado
+00110001    - POP_JUMP_IF_TRUE      - controle desenhado (contrário do FALSE)
+00110010    - JUMP_FORWARD          - controle desenhado                - FUNCIONAL
+00110011    - JUMP_ABSOLUTE         - controle desenhado                - FUNCIONAL
+
+    - SETUP_LOOP
+    - GET_ITER
+    - FOR_ITER
+
+00101000    - INPLACE_ADD
+00100000    - BINARY_ADD            - controle desenhado                - FUNCIONAL
+00100001    - BINARY_SUBTRACT       - controle desenhado                - FUNCIONAL
+00100010    - BINARY_MULTIPLY       - controle desenhado                - FUNCIONAL
+00100011    - BINARY_DIVIDE         - controle desenhado
+00101101    - BINARY_AND
+00101110    - BINARY_OR
+00101111    - BINARY_XOR
+
+01111100    - UNARY_NOT
+
+01100000    - CALL_FUNCTION
+01100001    - RETURN_VALUE
+
+00000000    - POP_BLOCK

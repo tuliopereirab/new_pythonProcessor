@@ -1,0 +1,41 @@
+REG 1 IN // 1 OUT
+    - DATA_WIDTH
+
+REG 1 IN // 1 OUT   -> 1 BIT
+    -----------------
+    
+REG 2 IN // 1 OUT
+    - DATA_WIDTH_IN_1
+    - DATA_WIDTH_IN_2
+    - DATA_WIDTH_OUT
+    
+REG 2 IN // 1 OUT   -> RESET
+    - DATA_WIDTH_IN_1
+    - DATA_WIDTH_OUT
+
+REG 2 IN // 2 OUT
+    - DATA_WIDTH_IN_OUT_1
+    - DATA_WIDTH_IN_OUT_2
+
+MUX 4 IN // 1 OUT
+    - DATA_WIDTH_IN_1
+    - DATA_WIDTH_IN_2
+    - DATA_WIDTH_IN_3
+    - DATA_WIDTH_IN_4
+    - DATA_WIDTH_OUT
+
+MUX 2 IN // 1 OUT
+    - DATA_WIDTH_IN_1
+    - DATA_WIDTH_IN_2
+    - DATA_WIDTH_OUT
+
+MEMÓRIAS
+    - CTRL_WIDTH
+    - ADDR_WIDTH
+    - DATA_WIDTH
+    - DATA_WIDTH
+
+MEMÓRIA INSTRUÇÃO
+    - ADDR_WIDTH (endereçamento memória)
+    - DATA_WIDTH_1
+    - DATA_WIDTH_2

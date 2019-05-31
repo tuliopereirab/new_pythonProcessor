@@ -1,0 +1,11 @@
+11111111 -> 255     -> valor inválido para TOS (erro crítico: finaliza a execução com loop de erro)
+11000011 -> 195     -> Endereço de memExt inválido (erro normal: ignora e só considera os bits do endereço)
+00111100 -> 60      -> Instrução inexistente (inicializar memória com 00000000, caso encontre outra coisa, que não seja uma instrução, ERRO)
+                    -> erro crítico: finaliza a execução com loop de erro
+
+00001001 -> 9       -> overflow BINARY_ADD
+00001010 -> 10      -> overflow BINARY_SUBTRACT
+00001011 -> 11      -> overflow BINARY_MULTIPLY
+00001100 -> 12      -> overflow BINARY_DIVIDE
+
+01100000 -> 96      -> POP_JUMP_IF_TRUE/FALSE com regComp inválido 

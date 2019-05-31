@@ -1,0 +1,34 @@
+MuxOp1:
+
+00 -> zero        (nada)
+01 -> um          (nada)
+10 -> regJump
+11 -> regOp1
+
+-----------------
+MuxOp2:
+
+00 -> regPc
+01 -> regTos
+10 -> regArg
+11 -> regOp2
+
+-----------------
+MuxPilha:
+
+00 -> Ula
+01 -> regMemExt
+10 -> regDataReturn
+11 -> regArg
+
+-----------------
+MuxPC:
+
+0 -> Ula
+1 -> PilhaFuncao
+
+-----------------
+MuxTos:
+
+0 -> Ula
+1 -> PilhaRetorno
