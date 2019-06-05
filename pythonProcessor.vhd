@@ -15,13 +15,20 @@ entity pythonProcessor is
 
     port
     (
-        osc_clk                     : in std_logic;
-        --reset_n                     : in std_logic;
-        button                      : in std_logic_vector(3 downto 0);
+        clk_geral                     : in std_logic;
         memExt_read_out             : out std_logic_vector((DATA_WIDTH-1) downto 0);
         error_out                   : out std_logic_vector((DATA_WIDTH-1) downto 0);
-        instr_out                   : out std_logic_vector((ADDR_WIDTH_FUNCTIONS-1) downto 0);
-        led                         : out std_logic_vector(3 downto 0)
+        -- -------------------------
+        input_statusStart           : in std_logic;
+        output_statusEnd            : out std_logic;
+        -- -------------------------
+        input_reset                 : in std_logic;
+        input_regInstr              : in std_logic_vector((DATA_WIDTH-1) downto 0);
+        input_regArg                : in std_logic_vector((DATA_WIDTH-1) downto 0);
+        input_regJump               : in std_logic_vector((INSTRUCTION_WIDTH-1) downto 0);
+        output_regPc                : out std_logic_vector((ADDR_WIDTH-1) downto 0);
+        -- -------------------------
+        led_out                         : out std_logic_vector(3 downto 0)
     );
 end entity;
 
@@ -30,7 +37,7 @@ architecture arc of pythonProcessor is
 --extra signals
 -- signal signal_zero  : integer   := 0;
 -- signal signal_one   : integer   := 1;
-signal clk_geral, reset_geral   : std_logic;
+signal reset_geral   : std_logic;
 signal zero_std_vector, one_std_vector  : std_logic_vector((ADDR_MAX_WIDTH-1) downto 0);
 -- control
 signal reset_ctrl   : std_logic;
@@ -331,13 +338,17 @@ end component;
 
 -------------------------------------------------------------------------------------------------
 begin
-    instr_out <= w_regInstr_out;
-    led <= NOT w_regPc_out(3 downto 0);
+    --clk_geral <= osc_clk;                   -- it receives the clock coming from the Nios processor
+    error_out <= w_regError_out;            -- it sends to software the error code
+    reset_geral <= input_reset;             -- it receives the reset signal
     memExt_read_out <= w_memExt_out;
-    error_out <= w_regError_out;
-    clk_geral <= osc_clk;
-    --reset_geral <= reset_n;
-    reset_geral <= NOT button(0);
+    -- -----------------------------------------------
+    output_regPc <= w_regPc_out;            -- it sends the PC value to the software
+    w_regInstr_in <= input_regInstr;        -- it receives the opCode
+    w_regArg_in <= input_regArg;            -- it receives the opArg
+    w_memInstr_fullWord <= input_regJump;   -- it receives the regJump to be used or not, it depends of the executed instruction
+    -- -----------------------------------------------
+    led_out <= w_pilha_out(3 downto 0);         -- it shows the last 4 bits of the top of stack in the led
     zero_std_vector <= std_logic_vector(to_unsigned(0, ADDR_MAX_WIDTH));
     one_std_vector <= std_logic_vector(to_unsigned(1, ADDR_MAX_WIDTH));
 
@@ -706,21 +717,21 @@ begin
         );
 
 --=========================================================
-    memInstr    : instr_memory
-        generic map
-        (
-            INSTRUCTION_WIDTH_IN => INSTRUCTION_WIDTH,
-            ADDR_WIDTH_IN => ADDR_WIDTH,
-            DATA_WIDTH_IN => DATA_WIDTH
-        )
-        port map
-        (
-            clk => clk_geral,
-            addr_in => w_regPc_out,
-            opCode_out => w_regInstr_in,
-            opArg_out => w_regArg_in,
-            fullWord_out => w_memInstr_fullWord
-        );
+    -- memInstr    : instr_memory
+    --     generic map
+    --     (
+    --         INSTRUCTION_WIDTH_IN => INSTRUCTION_WIDTH,
+    --         ADDR_WIDTH_IN => ADDR_WIDTH,
+    --         DATA_WIDTH_IN => DATA_WIDTH
+    --     )
+    --     port map
+    --     (
+    --         clk => clk_geral,
+    --         addr_in => w_regPc_out,
+    --         opCode_out => w_regInstr_in,
+    --         opArg_out => w_regArg_in,
+    --         fullWord_out => w_memInstr_fullWord
+    --     );
 
 --=========================================================
     controller  : control
