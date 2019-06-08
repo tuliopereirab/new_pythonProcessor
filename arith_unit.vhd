@@ -1,8 +1,8 @@
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
-use ieee.std_logic_signed.all;
-use ieee.std_logic_arith.all;
+--use ieee.std_logic_unsigned.all;
+--use ieee.std_logic_arith.all;
 
 entity arith_unit is
 	generic
@@ -33,18 +33,19 @@ signal s_not, s_and, s_or, s_xor	: std_logic_vector((DATA_WIDTH_IN_ULA-1) downto
 signal saida_comparacao, saida_overflow	: std_logic;
 signal s_igual, s_menor, s_maior  : std_logic;
 signal s_mult 	: std_logic_vector(((DATA_WIDTH_IN_ULA*2)-1) downto 0); -- PARA MULTIPLIÇÃO, DOBRO DE DATA_WIDTH_IN_ULA
+
 begin
 
-	s_add		<= data_in_2 + data_in_1;
-	s_sub		<= data_in_2 - data_in_1;
-	s_mult	    <= data_in_2 * data_in_1;
-	s_div		<= data_in_1;--std_logic_vector(to_integer(data_in_2 / data_in_1));
+	s_add		<= std_logic_vector(unsigned(data_in_2) + unsigned(data_in_1));
+	s_sub		<= std_logic_vector(unsigned(data_in_2) - unsigned(data_in_1));
+	s_mult	    <= std_logic_vector(unsigned(data_in_2) * unsigned(data_in_1));
+	s_div		<= std_logic_vector(to_unsigned(7, DATA_WIDTH_IN_ULA));--std_logic_vector(unsigned(data_in_2) / unsigned(data_in_1));
 
 	s_plusZeroD1 <= data_in_1;
 	s_plusZeroD2 <= data_in_2;
-	s_plusOne <= data_in_2 + std_logic_vector(to_unsigned(1, DATA_WIDTH_IN_ULA));
-	s_lessOne <= data_in_2 - std_logic_vector(to_unsigned(1, DATA_WIDTH_IN_ULA));
-	s_plusTwo <= data_in_2 + std_logic_vector(to_unsigned(2, DATA_WIDTH_IN_ULA));
+	s_plusOne <= std_logic_vector(unsigned(data_in_2) + to_unsigned(1, DATA_WIDTH_IN_ULA));
+	s_lessOne <= std_logic_vector(unsigned(data_in_2) - to_unsigned(1, DATA_WIDTH_IN_ULA));
+	s_plusTwo <= std_logic_vector(unsigned(data_in_2) + to_unsigned(2, DATA_WIDTH_IN_ULA));
 
 	s_not <= NOT data_in_1;
 	s_and <= data_in_1 AND data_in_2;
@@ -77,11 +78,12 @@ begin
 	                    s_menor when (sel_Ula="1010") else
 	                    s_maior when (sel_Ula="1011") else
 	                    '0';
-	saida_overflow <= '1' when ((sel_Ula="0000") AND ((data_in_2+data_in_1)>std_logic_vector(to_unsigned(255, DATA_WIDTH_IN_ULA)))) else  -- add
+	saida_overflow <= '1' when ((sel_Ula="0000") AND ((unsigned(data_in_2)+unsigned(data_in_1))>to_unsigned(255, DATA_WIDTH_IN_ULA))) else  -- add
 	 				  '1' when ((sel_Ula="0001") AND (s_sub<std_logic_vector(to_unsigned(0, DATA_WIDTH_IN_ULA)))) else  -- sub
 					  '1' when ((sel_Ula="0010") AND s_mult(((DATA_WIDTH_IN_ULA*2)-1) downto DATA_WIDTH_IN_PROC)>std_logic_vector(to_unsigned(0, (DATA_WIDTH_IN_ULA*2-DATA_WIDTH_IN_PROC)))) else  -- multiply
 					  '1' when ((sel_Ula="0011") AND (s_div<std_logic_vector(to_unsigned(0, DATA_WIDTH_IN_ULA)))) else  -- div
 					  '0';
+	---------------------------
 	---------------------------------------------------------------
 
 	out_comp <= saida_comparacao;

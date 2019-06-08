@@ -1810,10 +1810,10 @@ begin
 				ctrl_regPilha <= "01";
 				sel_muxTos <= '0';
 				sel_MuxOp1 <= "00";
-				sel_MuxOp2 <= "00";
-				sel_MuxPilha <= "01";
+				sel_MuxOp2 <= "01";
 				sel_Ula <= "0111";
 				-- -------------------------
+				sel_MuxPilha <= "00";
 				ctrl_regInstr <= '0';
 				ctrl_regArg <= '0';
 				ctrl_regPc <= '0';
@@ -1841,8 +1841,8 @@ begin
 				-- -------------------------
 				sel_muxTos <= '0';
 				sel_MuxOp1 <= "00";
-				sel_MuxOp2 <= "00";
-				sel_MuxPilha <= "01";
+				sel_MuxOp2 <= "01";
+				sel_MuxPilha <= "00";
 				sel_Ula <= "0111";
 				ctrl_regInstr <= '0';
 				ctrl_regArg <= '0';
