@@ -9,6 +9,10 @@ entity mux_8_1 is
         DATA_WIDTH_IN_2     : natural;
         DATA_WIDTH_IN_3     : natural;
         DATA_WIDTH_IN_4     : natural;
+        DATA_WIDTH_IN_5     : natural;
+        DATA_WIDTH_IN_6     : natural;
+        DATA_WIDTH_IN_7     : natural;
+        DATA_WIDTH_IN_8     : natural;
         DATA_WIDTH_OUT      : natural
     );
     port
