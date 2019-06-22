@@ -37,8 +37,8 @@ signal reset_ctrl   : std_logic;
 signal adder_ctrl   : std_logic;
 signal regArg_ctrl, regComp_ctrl, regEnd_ctrl, regInstr_ctrl, regOp1_ctrl, regOp2_ctrl, muxPc_ctrl, muxTos_ctrl  : std_logic;
 signal regOverflow_ctrl, regJump_ctrl, regPc_ctrl, regTos_ctrl, regTosFuncao_ctrl, regDataReturn_ctrl : std_logic;
-signal memMatriz_ctrl, regOpMatriz_ctrl, muxMatriz1_ctrl, muxMatriz2_ctrl, muxMemExt_ctrl, regAddr_matriz_ctrl, regFlag_ctrl, regChave_ctrl : std_logic;
-signal memFlag_ctrl : std_logic_vector(1 downto 0);
+signal memFlag_ctrl, memMatriz_ctrl, regOpMatriz_ctrl, muxMatriz1_ctrl, muxMatriz2_ctrl, muxMemExt_ctrl, regAddr_matriz_ctrl, regFlag_ctrl, regChave_ctrl : std_logic;
+
 signal pilha_ctrl, pilhaFuncao_ctrl, pilhaRetorno_ctrl, memExt_ctrl : std_logic;
 signal regMemExt_ctrl, regPilha_ctrl, muxOp1_ctrl, muxOp2_ctrl    : std_logic_vector(1 downto 0);
 signal muxPilha_ctrl    : std_logic_vector(2 downto 0);
@@ -47,6 +47,8 @@ signal regError_ctrl    : std_logic;
 signal w_regError_in, w_regError_out    : std_logic_vector((DATA_WIDTH-1) downto 0);
 -- memExt
 signal w_memExt_in, w_memExt_out    : std_logic_vector((DATA_WIDTH-1) downto 0);
+-- memFlag
+signal w_memFlag_in, w_memFlag_out  : std_logic_vector((DATA_WIDTH-1) downto 0);
 -- memInstr
 signal w_memInstr_fullWord : std_logic_vector((INSTRUCTION_WIDTH-1) downto 0);
 -- memMatriz
@@ -63,11 +65,16 @@ signal w_pilhaFuncao_out, w_pilhaRetorno_out    : std_logic_vector((ADDR_WIDTH-1
 signal w_regAddr_matriz_out     : std_logic_vector((ADDR_WIDTH-1) downto 0);
 -- regArg
 signal w_regArg_in, w_regArg_out    : std_logic_vector((DATA_WIDTH-1) downto 0);
+-- regChave
+signal w_regChave_out   : std_logic_vector((ADDR_WIDTH-1) downto 0);
 -- regComp
 signal w_regComp_out    : std_logic;
+-- regDataReturn
 signal w_regDataReturn_out  : std_logic_vector((DATA_WIDTH-1) downto 0);
 -- regEnd
 signal w_regEnd_out     : std_logic_vector((ADDR_WIDTH-1) downto 0);
+-- regFlag
+signal w_regFlag_in, w_regFlag_out  : std_logic;
 -- regInstr
 signal w_regInstr_in, w_regInstr_out    : std_logic_vector((DATA_WIDTH-1) downto 0);
 -- regJump
@@ -80,7 +87,6 @@ signal w_regOpMatriz_out    : std_logic_vector((DATA_WIDTH-1) downto 0);
 signal w_regOp2_out : std_logic_vector((ADDR_MAX_WIDTH-1) downto 0);
 -- regOverflow
 signal w_regOverflow_in, w_regOverflow_out  : std_logic;
-
 -- regPilha
 signal w_regPilha_out   : std_logic_vector((DATA_WIDTH-1) downto 0);
 -- regPc
@@ -397,6 +403,20 @@ begin
     zero_std_vector <= std_logic_vector(to_unsigned(0, ADDR_MAX_WIDTH));
     one_std_vector <= std_logic_vector(to_unsigned(1, ADDR_MAX_WIDTH));
 
+    regAddr_matriz  : reg_1_1
+        generic map
+        (
+            DATA_WIDTH_IN => ADDR_WIDTH,
+            DATA_WIDTH_OUT => ADDR_WIDTH
+        )
+        port map
+        (
+            clk => clk_geral,
+            ctrl_in => regAddr_matriz_ctrl,
+            data_in => w_somador_out,
+            data_out => w_regAddr_matriz_out
+        );
+
     regArg   : reg_1_1
         generic map
         (
@@ -410,6 +430,20 @@ begin
             ctrl_in => regArg_ctrl,
             data_in => w_regArg_in,
             data_out => w_regArg_out
+        );
+
+    regChave    : reg_1_1
+        generic map
+        (
+            DATA_WIDTH_IN => ADDR_WIDTH,
+            DATA_WIDTH_OUT => ADDR_WIDTH
+        )
+        port map
+        (
+            clk => clk_geral,
+            ctrl_in => regChave_ctrl,
+            data_in => w_regTos_out,
+            data_out => w_regChave_out
         );
 
     regDataReturn   : reg_1_1
@@ -482,6 +516,21 @@ begin
             data_out => w_regOp2_out
         );
 
+    regOpMatriz : reg_1_1
+        generic map
+        (
+            DATA_WIDTH_IN => DATA_WIDTH,
+            DATA_WIDTH_OUT => DATA_WIDTH
+        )
+        port map
+        (
+            clk => clk_geral,
+            ctrl_in => regOpMatriz_ctrl,
+            data_in => w_regPilha_out,
+            data_out => w_regOpMatriz_out
+        );
+
+
     regError    : reg_1_1
         generic map
         (
@@ -496,6 +545,23 @@ begin
             data_out => w_regError_out
         );
 --=========================================================
+    regComp : reg_1_1_1bit
+        port map
+        (
+            clk => clk_geral,
+            ctrl_in => regComp_ctrl,
+            data_in => w_ula_out_comp,
+            data_out => w_regComp_out
+            );
+
+    regFlag : reg_1_1_1bit
+        port map
+        (
+            clk => clk_geral,
+            ctrl_in => regFlag_ctrl,
+            data_in => w_regFlag_in,
+            data_out => w_regFlag_out
+        );
 
     regOverflow    : reg_1_1_1bit
         port map
@@ -507,14 +573,6 @@ begin
         );
 
 
-    regComp : reg_1_1_1bit
-        port map
-        (
-            clk => clk_geral,
-            ctrl_in => regComp_ctrl,
-            data_in => w_ula_out_comp,
-            data_out => w_regComp_out
-        );
 --=========================================================
     regJump     : reg_2_1
         generic map
@@ -797,6 +855,21 @@ begin
             addr_in => w_regEnd_out,
             data_in => w_memExt_in,
             data_out => w_memExt_out
+        );
+
+    memFlag : memory
+        generic map
+        (
+            DATA_WIDTH_IN => DATA_WIDTH,
+            ADDR_WIDTH_IN => ADDR_WIDTH
+        )
+        port map
+        (
+            clk => clk_geral,
+            ctrl_in => memFlag_ctrl,
+            addr_in => w_regEnd_out,
+            data_in => w_memFlag_in,
+            data_out => w_memFlag_out
         );
 
     memMatriz   : memory
