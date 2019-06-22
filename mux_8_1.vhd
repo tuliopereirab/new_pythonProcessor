@@ -22,16 +22,16 @@ entity mux_8_1 is
         data_in_2   : in std_logic_vector((DATA_WIDTH_IN_2-1) downto 0);
         data_in_3   : in std_logic_vector((DATA_WIDTH_IN_3-1) downto 0);
         data_in_4   : in std_logic_vector((DATA_WIDTH_IN_4-1) downto 0);
-        data_in_5   : in std_logic_vector((DATA_WIDTH_IN_1-1) downto 0);
-        data_in_6   : in std_logic_vector((DATA_WIDTH_IN_2-1) downto 0);
-        data_in_7   : in std_logic_vector((DATA_WIDTH_IN_3-1) downto 0);
-        data_in_8   : in std_logic_vector((DATA_WIDTH_IN_4-1) downto 0);
+        data_in_5   : in std_logic_vector((DATA_WIDTH_IN_5-1) downto 0);
+        data_in_6   : in std_logic_vector((DATA_WIDTH_IN_6-1) downto 0);
+        data_in_7   : in std_logic_vector((DATA_WIDTH_IN_7-1) downto 0);
+        data_in_8   : in std_logic_vector((DATA_WIDTH_IN_8-1) downto 0);
         data_out    : out std_logic_vector((DATA_WIDTH_OUT-1) downto 0)
     );
 end entity;
 
 architecture arc_mux of mux_8_1 is
-signal int_input_1, int_input_2, int_input_3, int_input_4   : integer;
+signal int_input_1, int_input_2, int_input_3, int_input_4, int_input_5, int_input_6, int_input_7, int_input_8   : integer;
 begin
     int_input_1 <= to_integer(unsigned(data_in_1));
     int_input_2 <= to_integer(unsigned(data_in_2));
@@ -50,5 +50,5 @@ begin
                 std_logic_vector(to_unsigned(int_input_5, DATA_WIDTH_OUT)) when (sel_in="100") else
                 std_logic_vector(to_unsigned(int_input_6, DATA_WIDTH_OUT)) when (sel_in="101") else
                 std_logic_vector(to_unsigned(int_input_7, DATA_WIDTH_OUT)) when (sel_in="110") else
-                std_logic_vector(to_unsigned(int_input_8, DATA_WIDTH_OUT)) when (sel_in="111") else
+                std_logic_vector(to_unsigned(int_input_8, DATA_WIDTH_OUT));
 end arc_mux;

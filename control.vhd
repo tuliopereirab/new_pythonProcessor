@@ -52,7 +52,7 @@ entity control is
 		sel_muxTos				: out std_logic;
         sel_MuxOp1				: out std_logic_vector(1 downto 0);
         sel_MuxOp2				: out std_logic_vector(1 downto 0);
-        sel_MuxPilha			: out std_logic_vector(1 downto 0);
+        sel_MuxPilha			: out std_logic_vector(2 downto 0);
         -- arithmetic
         sel_soma_sub			: out std_logic;
         sel_ula					: out std_logic_vector((ULA_CTRL_WIDTH_IN-1) downto 0)
@@ -444,7 +444,7 @@ begin
 				ctrl_memExt <= '0';
 				sel_MuxOp1 <= "00";
 				sel_MuxOp2 <= "00";
-				sel_MuxPilha <= "00";
+				sel_MuxPilha <= "000";
 				sel_Ula <= "0000";
 				sel_soma_sub <= '0';
 				sel_muxPc <= '0';
@@ -473,7 +473,7 @@ begin
 				ctrl_memExt <= '0';
 				sel_MuxOp1 <= "00";
 				sel_MuxOp2 <= "00";
-				sel_MuxPilha <= "00";
+				sel_MuxPilha <= "000";
 				sel_Ula <= "0000";
 				sel_soma_sub <= '0';
 				sel_muxPc <= '0';
@@ -502,7 +502,7 @@ begin
 				ctrl_memExt <= '0';
 				sel_MuxOp1 <= "00";
 				sel_MuxOp2 <= "00";
-				sel_MuxPilha <= "00";
+				sel_MuxPilha <= "000";
 				sel_Ula <= "0000";
 				sel_soma_sub <= '0';
 				sel_muxPc <= '0';
@@ -531,7 +531,7 @@ begin
 				ctrl_memExt <= '0';
 				sel_MuxOp1 <= "00";
 				sel_MuxOp2 <= "00";
-				sel_MuxPilha <= "00";
+				sel_MuxPilha <= "000";
 				sel_Ula <= "0000";
 				sel_soma_sub <= '0';
 				sel_muxPc <= '0';
@@ -563,7 +563,7 @@ begin
 				ctrl_regMemExt <= "00";
 				ctrl_pilha <= '0';
 				ctrl_memExt <= '0';
-				sel_MuxPilha <= "00";
+				sel_MuxPilha <= "000";
 				sel_soma_sub <= '0';
 				sel_muxPc <= '0';
 				sel_muxTos <= '0';
@@ -592,7 +592,7 @@ begin
 				ctrl_regMemExt <= "00";
 				ctrl_pilha <= '0';
 				ctrl_memExt <= '0';
-				sel_MuxPilha <= "00";
+				sel_MuxPilha <= "000";
 				sel_soma_sub <= '0';
 				sel_muxPc <= '0';
 				sel_muxTos <= '0';
@@ -621,7 +621,7 @@ begin
 				ctrl_regMemExt <= "00";
 				ctrl_pilha <= '0';
 				ctrl_memExt <= '0';
-				sel_MuxPilha <= "00";
+				sel_MuxPilha <= "000";
 				sel_soma_sub <= '0';
 				sel_muxPc <= '0';
 				sel_muxTos <= '0';
@@ -633,7 +633,7 @@ begin
 			when lc1 =>
 				sel_MuxOp1 <= "00";
 				sel_MuxOp2 <= "01";
-				sel_MuxPilha <= "11";
+				sel_MuxPilha <= "011";
 				sel_Ula <= "0110";
 				-- -------------------------
 				ctrl_regPc <= '0';
@@ -665,7 +665,7 @@ begin
 				-- -------------------------
 				sel_MuxOp1 <= "00";
 				sel_MuxOp2 <= "01";
-				sel_MuxPilha <= "11";
+				sel_MuxPilha <= "011";
 				sel_Ula <= "0110";
 				ctrl_regPc <= '0';
 				ctrl_regInstr <= '0';
@@ -696,7 +696,7 @@ begin
 				sel_MuxOp2 <= "00";
 				sel_Ula <= "0110";
 				-- -------------------------
-				sel_MuxPilha <= "11";
+				sel_MuxPilha <= "011";
 				ctrl_regPc <= '0';
 				ctrl_regInstr <= '0';
 				ctrl_regArg <= '0';
@@ -726,7 +726,7 @@ begin
 				sel_Ula <= "0110";
 				ctrl_regTos <= '0';
 				ctrl_regPilha <= "00";
-				sel_MuxPilha <= "11";
+				sel_MuxPilha <= "011";
 				ctrl_regInstr <= '0';
 				ctrl_regArg <= '0';
 				ctrl_regOp1 <= '0';
@@ -765,7 +765,7 @@ begin
 				ctrl_regMemExt <= "00";
 				ctrl_pilha <= '0';
 				ctrl_memExt <= '0';
-				sel_MuxPilha <= "00";
+				sel_MuxPilha <= "000";
 				sel_soma_sub <= '0';
 				sel_muxTos <= '0';
 				ctrl_regTosFuncao <= '0';
@@ -794,7 +794,7 @@ begin
 				ctrl_regMemExt <= "00";
 				ctrl_pilha <= '0';
 				ctrl_memExt <= '0';
-				sel_MuxPilha <= "00";
+				sel_MuxPilha <= "000";
 				sel_soma_sub <= '0';
 				sel_muxTos <= '0';
 				ctrl_regTosFuncao <= '0';
@@ -824,7 +824,7 @@ begin
 				ctrl_regMemExt <= "00";
 				ctrl_pilha <= '0';
 				ctrl_memExt <= '0';
-				sel_MuxPilha <= "00";
+				sel_MuxPilha <= "000";
 				sel_soma_sub <= '0';
 				sel_muxTos <= '0';
 				ctrl_regTosFuncao <= '0';
@@ -853,7 +853,7 @@ begin
 				ctrl_regMemExt <= "00";
 				ctrl_pilha <= '0';
 				ctrl_memExt <= '0';
-				sel_MuxPilha <= "00";
+				sel_MuxPilha <= "000";
 				sel_soma_sub <= '0';
 				sel_muxTos <= '0';
 				ctrl_regTosFuncao <= '0';
@@ -865,7 +865,7 @@ begin
 			when lf5 =>
 				ctrl_regEnd <= '0';
 				ctrl_regMemExt <= "01";
-				sel_MuxPilha <= "01";
+				sel_MuxPilha <= "001";
 				sel_MuxOp1 <= "00";
 				sel_MuxOp2 <= "01";
 				sel_Ula <= "0110";
@@ -896,7 +896,7 @@ begin
 				ctrl_regPilha <= "10";
 				ctrl_regTos <= '1';
 				-- -------------------------
-				sel_MuxPilha <= "01";
+				sel_MuxPilha <= "001";
 				sel_MuxOp1 <= "00";
 				sel_MuxOp2 <= "01";
 				sel_Ula <= "0110";
@@ -930,7 +930,7 @@ begin
 				sel_Ula <= "0110";
 				-- -------------------------
 				ctrl_regMemExt <= "00";
-				sel_MuxPilha <= "01";
+				sel_MuxPilha <= "001";
 				ctrl_regEnd <= '0';
 				ctrl_regJump <= '0';
 				ctrl_regPc <= '0';
@@ -960,7 +960,7 @@ begin
 				ctrl_regPilha <= "00";
 				ctrl_regTos <= '0';
 				ctrl_regMemExt <= "00";
-				sel_MuxPilha <= "01";
+				sel_MuxPilha <= "001";
 				ctrl_regEnd <= '0';
 				ctrl_regJump <= '0';
 				ctrl_regInstr <= '0';
@@ -997,7 +997,7 @@ begin
 				ctrl_regMemExt <= "00";
 				ctrl_pilha <= '0';
 				ctrl_memExt <= '0';
-				sel_MuxPilha <= "00";
+				sel_MuxPilha <= "000";
 				sel_soma_sub <= '0';
 				sel_muxTos <= '0';
 				ctrl_regTosFuncao <= '0';
@@ -1026,7 +1026,7 @@ begin
 				ctrl_regMemExt <= "00";
 				ctrl_pilha <= '0';
 				ctrl_memExt <= '0';
-				sel_MuxPilha <= "00";
+				sel_MuxPilha <= "000";
 				sel_soma_sub <= '0';
 				sel_muxTos <= '0';
 				ctrl_regTosFuncao <= '0';
@@ -1056,7 +1056,7 @@ begin
 				ctrl_regMemExt <= "00";
 				ctrl_pilha <= '0';
 				ctrl_memExt <= '0';
-				sel_MuxPilha <= "00";
+				sel_MuxPilha <= "000";
 				sel_soma_sub <= '0';
 				sel_muxTos <= '0';
 				ctrl_regTosFuncao <= '0';
@@ -1085,7 +1085,7 @@ begin
 				ctrl_regTos <= '0';
 				ctrl_pilha <= '0';
 				ctrl_memExt <= '0';
-				sel_MuxPilha <= "00";
+				sel_MuxPilha <= "000";
 				sel_soma_sub <= '0';
 				sel_muxTos <= '0';
 				ctrl_regTosFuncao <= '0';
@@ -1115,7 +1115,7 @@ begin
 				ctrl_regComp <= '0';
 				ctrl_regOverflow <= '0';
 				ctrl_pilha <= '0';
-				sel_MuxPilha <= "00";
+				sel_MuxPilha <= "000";
 				sel_soma_sub <= '0';
 				ctrl_regTosFuncao <= '0';
 				ctrl_pilhaFuncao <= '0';
@@ -1144,7 +1144,7 @@ begin
 				ctrl_regComp <= '0';
 				ctrl_regOverflow <= '0';
 				ctrl_pilha <= '0';
-				sel_MuxPilha <= "00";
+				sel_MuxPilha <= "000";
 				sel_soma_sub <= '0';
 				ctrl_regTosFuncao <= '0';
 				ctrl_pilhaFuncao <= '0';
@@ -1173,7 +1173,7 @@ begin
 				ctrl_regComp <= '0';
 				ctrl_regOverflow <= '0';
 				ctrl_pilha <= '0';
-				sel_MuxPilha <= "00";
+				sel_MuxPilha <= "000";
 				sel_soma_sub <= '0';
 				ctrl_regTosFuncao <= '0';
 				ctrl_pilhaFuncao <= '0';
@@ -1202,7 +1202,7 @@ begin
 				ctrl_regComp <= '0';
 				ctrl_regOverflow <= '0';
 				ctrl_pilha <= '0';
-				sel_MuxPilha <= "00";
+				sel_MuxPilha <= "000";
 				sel_soma_sub <= '0';
 				ctrl_regTosFuncao <= '0';
 				ctrl_pilhaFuncao <= '0';
@@ -1229,7 +1229,7 @@ begin
 				ctrl_regMemExt <= "00";
 				ctrl_pilha <= '0';
 				ctrl_memExt <= '0';
-				sel_MuxPilha <= "00";
+				sel_MuxPilha <= "000";
 				sel_soma_sub <= '0';
 				sel_muxPc <= '0';
 				ctrl_regTosFuncao <= '0';
@@ -1258,7 +1258,7 @@ begin
 				ctrl_regMemExt <= "00";
 				ctrl_pilha <= '0';
 				ctrl_memExt <= '0';
-				sel_MuxPilha <= "00";
+				sel_MuxPilha <= "000";
 				sel_soma_sub <= '0';
 				sel_muxPc <= '0';
 				ctrl_regTosFuncao <= '0';
@@ -1287,7 +1287,7 @@ begin
 				ctrl_regMemExt <= "00";
 				ctrl_pilha <= '0';
 				ctrl_memExt <= '0';
-				sel_MuxPilha <= "00";
+				sel_MuxPilha <= "000";
 				sel_soma_sub <= '0';
 				sel_muxPc <= '0';
 				ctrl_regTosFuncao <= '0';
@@ -1316,7 +1316,7 @@ begin
 				ctrl_regMemExt <= "00";
 				ctrl_pilha <= '0';
 				ctrl_memExt <= '0';
-				sel_MuxPilha <= "00";
+				sel_MuxPilha <= "000";
 				sel_soma_sub <= '0';
 				sel_muxPc <= '0';
 				ctrl_regTosFuncao <= '0';
@@ -1328,7 +1328,7 @@ begin
 				regError_out <= "00000000";
             when b5_1 =>
 				ctrl_regOp2 <= '0';
-				sel_MuxPilha <= "00";
+				sel_MuxPilha <= "000";
 				sel_Ula <= "0000";
 				-- -------------------------
 				ctrl_regPilha <= "00";
@@ -1357,7 +1357,7 @@ begin
 				regError_out <= "00000000";
             when b5_2 =>
 				ctrl_regOp2 <= '0';
-				sel_MuxPilha <= "00";
+				sel_MuxPilha <= "000";
 				sel_Ula <= "0001";
 				-- -------------------------
 				ctrl_regPilha <= "00";
@@ -1386,7 +1386,7 @@ begin
 				regError_out <= "00000000";
             when b5_3 =>
 				ctrl_regOp2 <= '0';
-				sel_MuxPilha <= "00";
+				sel_MuxPilha <= "000";
 				sel_Ula <= "0010";
 				-- -------------------------
 				ctrl_regPilha <= "00";
@@ -1415,7 +1415,7 @@ begin
 				regError_out <= "00000000";
             when b5_4 =>
 				ctrl_regOp2 <= '0';
-				sel_MuxPilha <= "00";
+				sel_MuxPilha <= "000";
 				sel_Ula <= "0011";
 				-- -------------------------
 				ctrl_regPilha <= "00";
@@ -1444,7 +1444,7 @@ begin
 				regError_out <= "00000000";
 			when b5_5 =>		-- and
 				ctrl_regOp2 <= '0';
-				sel_MuxPilha <= "00";
+				sel_MuxPilha <= "000";
 				sel_Ula <= "1101";
 				-- -------------------------
 				ctrl_regPilha <= "00";
@@ -1473,7 +1473,7 @@ begin
 				regError_out <= "00000000";
 			when b5_6 =>		-- or
 				ctrl_regOp2 <= '0';
-				sel_MuxPilha <= "00";
+				sel_MuxPilha <= "000";
 				sel_Ula <= "1110";
 				-- -------------------------
 				ctrl_regPilha <= "00";
@@ -1502,7 +1502,7 @@ begin
 				regError_out <= "00000000";
 			when b5_7 =>		-- xor
 				ctrl_regOp2 <= '0';
-				sel_MuxPilha <= "00";
+				sel_MuxPilha <= "000";
 				sel_Ula <= "1111";
 				-- -------------------------
 				ctrl_regPilha <= "00";
@@ -1534,7 +1534,7 @@ begin
 				ctrl_regOverflow <= '1';
 				-- -------------------------
 				ctrl_regOp2 <= '0';
-				sel_MuxPilha <= "00";
+				sel_MuxPilha <= "000";
 				if(sEntrada_regInstr="00100000") then		-- sum
 					sel_Ula <= "0000";
 				elsif(sEntrada_regInstr="00100001") then	-- subtract
@@ -1584,7 +1584,7 @@ begin
 				sel_MuxOp2 <= "00";
 				-- -------------------------
 				ctrl_regOp2 <= '0';
-				sel_MuxPilha <= "00";
+				sel_MuxPilha <= "000";
 				ctrl_regOp1 <= '0';
 				ctrl_regTos <= '0';
 				sel_muxTos <= '0';
@@ -1614,7 +1614,7 @@ begin
 				sel_MuxOp1 <= "00";
 				sel_MuxOp2 <= "00";
 				ctrl_regOp2 <= '0';
-				sel_MuxPilha <= "00";
+				sel_MuxPilha <= "000";
 				ctrl_regOp1 <= '0';
 				ctrl_regTos <= '0';
 				sel_muxTos <= '0';
@@ -1649,7 +1649,7 @@ begin
 				ctrl_memExt <= '0';
 				sel_MuxOp1 <= "00";
 				sel_MuxOp2 <= "00";
-				sel_MuxPilha <= "00";
+				sel_MuxPilha <= "000";
 				sel_Ula <= "0000";
 				sel_soma_sub <= '0';
 				sel_muxPc <= '0';
@@ -1678,7 +1678,7 @@ begin
 				ctrl_pilha <= '0';
 				ctrl_memExt <= '0';
 				sel_MuxOp2 <= "00";
-				sel_MuxPilha <= "00";
+				sel_MuxPilha <= "000";
 				sel_Ula <= "0000";
 				sel_soma_sub <= '0';
 				sel_muxPc <= '0';
@@ -1692,7 +1692,7 @@ begin
 				regError_out <= "00000000";
 			when u3_1 =>
 				ctrl_regOp1 <= '0';
-				sel_MuxPilha <= "00";
+				sel_MuxPilha <= "000";
 				sel_Ula <= "1100";
 				-- -------------------------
 				sel_MuxOp1 <= "11";
@@ -1723,7 +1723,7 @@ begin
 				ctrl_regPilha <= "10";
 				-- -------------------------
 				ctrl_regOp1 <= '0';
-				sel_MuxPilha <= "00";
+				sel_MuxPilha <= "000";
 				sel_Ula <= "1100";
 				sel_MuxOp1 <= "11";
 				ctrl_regInstr <= '0';
@@ -1757,7 +1757,7 @@ begin
 				sel_Ula <= "0110";
 				-- -------------------------
 				ctrl_regOp1 <= '0';
-				sel_MuxPilha <= "00";
+				sel_MuxPilha <= "000";
 				ctrl_regInstr <= '0';
 				ctrl_regArg <= '0';
 				ctrl_regPc <= '0';
@@ -1787,7 +1787,7 @@ begin
 				sel_Ula <= "0110";
 				ctrl_regPilha <= "00";
 				ctrl_regOp1 <= '0';
-				sel_MuxPilha <= "00";
+				sel_MuxPilha <= "000";
 				ctrl_regInstr <= '0';
 				ctrl_regArg <= '0';
 				ctrl_regOp2 <= '0';
@@ -1813,7 +1813,7 @@ begin
 				sel_MuxOp2 <= "01";
 				sel_Ula <= "0111";
 				-- -------------------------
-				sel_MuxPilha <= "00";
+				sel_MuxPilha <= "000";
 				ctrl_regInstr <= '0';
 				ctrl_regArg <= '0';
 				ctrl_regPc <= '0';
@@ -1842,7 +1842,7 @@ begin
 				sel_muxTos <= '0';
 				sel_MuxOp1 <= "00";
 				sel_MuxOp2 <= "01";
-				sel_MuxPilha <= "00";
+				sel_MuxPilha <= "000";
 				sel_Ula <= "0111";
 				ctrl_regInstr <= '0';
 				ctrl_regArg <= '0';
@@ -1872,7 +1872,7 @@ begin
 				sel_muxTos <= '0';
 				sel_MuxOp1 <= "00";
 				sel_MuxOp2 <= "00";
-				sel_MuxPilha <= "01";
+				sel_MuxPilha <= "001";
 				sel_Ula <= "0111";
 				ctrl_regInstr <= '0';
 				ctrl_regArg <= '0';
@@ -1901,7 +1901,7 @@ begin
 				sel_muxTos <= '0';
 				sel_MuxOp1 <= "00";
 				sel_MuxOp2 <= "00";
-				sel_MuxPilha <= "01";
+				sel_MuxPilha <= "001";
 				sel_Ula <= "0111";
 				ctrl_regInstr <= '0';
 				ctrl_regArg <= '0';
@@ -1931,7 +1931,7 @@ begin
 				ctrl_regOp1 <= '0';
 				ctrl_regTos <= '0';
 				sel_muxTos <= '0';
-				sel_MuxPilha <= "01";
+				sel_MuxPilha <= "001";
 				sel_Ula <= "0111";
 				ctrl_regInstr <= '0';
 				ctrl_regArg <= '0';
@@ -1961,7 +1961,7 @@ begin
 				ctrl_regOp1 <= '0';
 				ctrl_regTos <= '0';
 				sel_muxTos <= '0';
-				sel_MuxPilha <= "01";
+				sel_MuxPilha <= "001";
 				ctrl_regInstr <= '0';
 				ctrl_regArg <= '0';
 				ctrl_regPc <= '0';
@@ -1990,7 +1990,7 @@ begin
 				ctrl_regOp1 <= '0';
 				ctrl_regTos <= '0';
 				sel_muxTos <= '0';
-				sel_MuxPilha <= "01";
+				sel_MuxPilha <= "001";
 				ctrl_regInstr <= '0';
 				ctrl_regArg <= '0';
 				ctrl_regPc <= '0';
@@ -2019,7 +2019,7 @@ begin
 				ctrl_regOp1 <= '0';
 				ctrl_regTos <= '0';
 				sel_muxTos <= '0';
-				sel_MuxPilha <= "01";
+				sel_MuxPilha <= "001";
 				ctrl_regInstr <= '0';
 				ctrl_regArg <= '0';
 				ctrl_regPc <= '0';
@@ -2055,7 +2055,7 @@ begin
 				ctrl_regOp1 <= '0';
 				ctrl_regTos <= '0';
 				sel_muxTos <= '0';
-				sel_MuxPilha <= "01";
+				sel_MuxPilha <= "001";
 				ctrl_regInstr <= '0';
 				ctrl_regArg <= '0';
 				ctrl_regPc <= '0';
@@ -2084,7 +2084,7 @@ begin
 				ctrl_regPilha <= "00";
 				ctrl_regOp1 <= '0';
 				ctrl_regTos <= '0';
-				sel_MuxPilha <= "01";
+				sel_MuxPilha <= "001";
 				ctrl_regInstr <= '0';
 				ctrl_regArg <= '0';
 				ctrl_regPc <= '0';
@@ -2113,7 +2113,7 @@ begin
 				ctrl_regOp2 <= '0';
 				ctrl_regPilha <= "00";
 				ctrl_regOp1 <= '0';
-				sel_MuxPilha <= "01";
+				sel_MuxPilha <= "001";
 				ctrl_regInstr <= '0';
 				ctrl_regArg <= '0';
 				ctrl_regPc <= '0';
@@ -2144,7 +2144,7 @@ begin
 				ctrl_regOp2 <= '0';
 				ctrl_regPilha <= "00";
 				ctrl_regOp1 <= '0';
-				sel_MuxPilha <= "01";
+				sel_MuxPilha <= "001";
 				ctrl_regInstr <= '0';
 				ctrl_regArg <= '0';
 				ctrl_regOverflow <= '0';
@@ -2173,7 +2173,7 @@ begin
 				ctrl_regOp2 <= '0';
 				ctrl_regPilha <= "00";
 				ctrl_regOp1 <= '0';
-				sel_MuxPilha <= "01";
+				sel_MuxPilha <= "001";
 				ctrl_regInstr <= '0';
 				ctrl_regArg <= '0';
 				ctrl_regOverflow <= '0';
@@ -2208,7 +2208,7 @@ begin
 				ctrl_regMemExt <= "00";
 				ctrl_pilha <= '0';
 				ctrl_memExt <= '0';
-				sel_MuxPilha <= "00";
+				sel_MuxPilha <= "000";
 				sel_soma_sub <= '0';
 				sel_muxTos <= '0';
 				ctrl_regTosFuncao <= '0';
@@ -2237,7 +2237,7 @@ begin
 				ctrl_regMemExt <= "00";
 				ctrl_pilha <= '0';
 				ctrl_memExt <= '0';
-				sel_MuxPilha <= "00";
+				sel_MuxPilha <= "000";
 				sel_soma_sub <= '0';
 				sel_muxTos <= '0';
 				ctrl_regTosFuncao <= '0';
@@ -2267,7 +2267,7 @@ begin
 				ctrl_regMemExt <= "00";
 				ctrl_pilha <= '0';
 				ctrl_memExt <= '0';
-				sel_MuxPilha <= "00";
+				sel_MuxPilha <= "000";
 				sel_soma_sub <= '0';
 				sel_muxTos <= '0';
 				ctrl_regTosFuncao <= '0';
@@ -2296,7 +2296,7 @@ begin
 				ctrl_regMemExt <= "00";
 				ctrl_pilha <= '0';
 				ctrl_memExt <= '0';
-				sel_MuxPilha <= "00";
+				sel_MuxPilha <= "000";
 				sel_soma_sub <= '0';
 				sel_muxTos <= '0';
 				ctrl_regTosFuncao <= '0';
@@ -2324,7 +2324,7 @@ begin
 				ctrl_regMemExt <= "00";
 				ctrl_pilha <= '0';
 				ctrl_memExt <= '0';
-				sel_MuxPilha <= "00";
+				sel_MuxPilha <= "000";
 				sel_soma_sub <= '0';
 				sel_muxTos <= '0';
 				ctrl_regTosFuncao <= '0';
@@ -2353,7 +2353,7 @@ begin
 				ctrl_regMemExt <= "00";
 				ctrl_pilha <= '0';
 				ctrl_memExt <= '0';
-				sel_MuxPilha <= "00";
+				sel_MuxPilha <= "000";
 				sel_soma_sub <= '0';
 				sel_muxTos <= '0';
 				ctrl_regTosFuncao <= '0';
@@ -2383,7 +2383,7 @@ begin
 				ctrl_regMemExt <= "00";
 				ctrl_pilha <= '0';
 				ctrl_memExt <= '0';
-				sel_MuxPilha <= "00";
+				sel_MuxPilha <= "000";
 				sel_soma_sub <= '0';
 				sel_muxTos <= '0';
 				ctrl_regTosFuncao <= '0';
@@ -2412,7 +2412,7 @@ begin
 				ctrl_regMemExt <= "00";
 				ctrl_pilha <= '0';
 				ctrl_memExt <= '0';
-				sel_MuxPilha <= "00";
+				sel_MuxPilha <= "000";
 				sel_soma_sub <= '0';
 				sel_muxTos <= '0';
 				ctrl_regTosFuncao <= '0';
@@ -2440,7 +2440,7 @@ begin
 				ctrl_regMemExt <= "00";
 				ctrl_pilha <= '0';
 				ctrl_memExt <= '0';
-				sel_MuxPilha <= "00";
+				sel_MuxPilha <= "000";
 				sel_soma_sub <= '0';
 				sel_muxTos <= '0';
 				ctrl_regTosFuncao <= '0';
@@ -2469,7 +2469,7 @@ begin
 				ctrl_regMemExt <= "00";
 				ctrl_pilha <= '0';
 				ctrl_memExt <= '0';
-				sel_MuxPilha <= "00";
+				sel_MuxPilha <= "000";
 				sel_soma_sub <= '0';
 				sel_muxTos <= '0';
 				ctrl_regTosFuncao <= '0';
@@ -2498,7 +2498,7 @@ begin
 				ctrl_regMemExt <= "00";
 				ctrl_pilha <= '0';
 				ctrl_memExt <= '0';
-				sel_MuxPilha <= "00";
+				sel_MuxPilha <= "000";
 				sel_soma_sub <= '0';
 				sel_muxTos <= '0';
 				ctrl_regTosFuncao <= '0';
@@ -2527,7 +2527,7 @@ begin
 				ctrl_regMemExt <= "00";
 				ctrl_pilha <= '0';
 				ctrl_memExt <= '0';
-				sel_MuxPilha <= "00";
+				sel_MuxPilha <= "000";
 				sel_soma_sub <= '0';
 				sel_muxTos <= '0';
 				ctrl_regTosFuncao <= '0';
@@ -2557,7 +2557,7 @@ begin
 				ctrl_regMemExt <= "00";
 				ctrl_pilha <= '0';
 				ctrl_memExt <= '0';
-				sel_MuxPilha <= "00";
+				sel_MuxPilha <= "000";
 				sel_soma_sub <= '0';
 				sel_muxTos <= '0';
 				ctrl_regTosFuncao <= '0';
@@ -2586,7 +2586,7 @@ begin
 				ctrl_regMemExt <= "00";
 				ctrl_pilha <= '0';
 				ctrl_memExt <= '0';
-				sel_MuxPilha <= "00";
+				sel_MuxPilha <= "000";
 				sel_soma_sub <= '0';
 				sel_muxTos <= '0';
 				ctrl_regTosFuncao <= '0';
@@ -2615,7 +2615,7 @@ begin
 				ctrl_regMemExt <= "00";
 				ctrl_pilha <= '0';
 				ctrl_memExt <= '0';
-				sel_MuxPilha <= "00";
+				sel_MuxPilha <= "000";
 				sel_muxTos <= '0';
 				ctrl_regTosFuncao <= '0';
 				ctrl_pilhaFuncao <= '0';
@@ -2645,7 +2645,7 @@ begin
 				ctrl_regMemExt <= "00";
 				ctrl_pilha <= '0';
 				ctrl_memExt <= '0';
-				sel_MuxPilha <= "00";
+				sel_MuxPilha <= "000";
 				sel_muxTos <= '0';
 				ctrl_pilhaFuncao <= '0';
 				ctrl_regDataReturn <= '0';
@@ -2675,7 +2675,7 @@ begin
 				ctrl_regMemExt <= "00";
 				ctrl_pilha <= '0';
 				ctrl_memExt <= '0';
-				sel_MuxPilha <= "00";
+				sel_MuxPilha <= "000";
 				sel_muxTos <= '0';
 				ctrl_pilhaFuncao <= '0';
 				ctrl_regDataReturn <= '0';
@@ -2704,7 +2704,7 @@ begin
 				ctrl_regMemExt <= "00";
 				ctrl_pilha <= '0';
 				ctrl_memExt <= '0';
-				sel_MuxPilha <= "00";
+				sel_MuxPilha <= "000";
 				sel_muxTos <= '0';
 				ctrl_pilhaFuncao <= '0';
 				ctrl_regDataReturn <= '0';
@@ -2733,7 +2733,7 @@ begin
 				ctrl_regMemExt <= "00";
 				ctrl_pilha <= '0';
 				ctrl_memExt <= '0';
-				sel_MuxPilha <= "00";
+				sel_MuxPilha <= "000";
 				sel_muxTos <= '0';
 				ctrl_pilhaFuncao <= '0';
 				ctrl_regDataReturn <= '0';
@@ -2764,7 +2764,7 @@ begin
 				ctrl_regMemExt <= "00";
 				ctrl_pilha <= '0';
 				ctrl_memExt <= '0';
-				sel_MuxPilha <= "00";
+				sel_MuxPilha <= "000";
 				sel_muxTos <= '0';
 				ctrl_regDataReturn <= '0';
 				ctrl_regError <= '0';
@@ -2793,7 +2793,7 @@ begin
 				ctrl_regMemExt <= "00";
 				ctrl_pilha <= '0';
 				ctrl_memExt <= '0';
-				sel_MuxPilha <= "00";
+				sel_MuxPilha <= "000";
 				sel_muxTos <= '0';
 				ctrl_regDataReturn <= '0';
 				ctrl_regError <= '0';
@@ -2818,7 +2818,7 @@ begin
 				ctrl_memExt <= '0';
 				sel_MuxOp1 <= "00";
 				sel_MuxOp2 <= "00";
-				sel_MuxPilha <= "00";
+				sel_MuxPilha <= "000";
 				sel_Ula <= "0000";
 				sel_soma_sub <= '0';
 				ctrl_regTosFuncao <= '0';
@@ -2832,7 +2832,7 @@ begin
 				ctrl_regDataReturn <= '1';
 				ctrl_regPc <= '1';
 				ctrl_regTos <= '1';
-				sel_MuxPilha <= "10";
+				sel_MuxPilha <= "010";
 				-- -------------------------
 				sel_muxPc <= '1';
 				sel_muxTos <= '1';
@@ -2866,7 +2866,7 @@ begin
 				sel_MuxOp2 <= "01";
 				sel_Ula <= "0110";
 				-- -------------------------
-				sel_MuxPilha <= "10";
+				sel_MuxPilha <= "010";
 				sel_muxPc <= '1';
 				ctrl_regInstr <= '0';
 				ctrl_regArg <= '0';
@@ -2896,7 +2896,7 @@ begin
 				sel_MuxOp1 <= "00";
 				sel_MuxOp2 <= "01";
 				sel_Ula <= "0110";
-				sel_MuxPilha <= "10";
+				sel_MuxPilha <= "010";
 				ctrl_regDataReturn <= '0';
 				sel_muxPc <= '1';
 				ctrl_regInstr <= '0';
@@ -2926,7 +2926,7 @@ begin
 				sel_MuxOp1 <= "00";
 				sel_MuxOp2 <= "01";
 				sel_Ula <= "0110";
-				sel_MuxPilha <= "10";
+				sel_MuxPilha <= "010";
 				ctrl_regDataReturn <= '0';
 				sel_muxPc <= '1';
 				ctrl_regInstr <= '0';

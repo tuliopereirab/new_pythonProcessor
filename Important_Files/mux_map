@@ -16,10 +16,11 @@ MuxOp2:
 -----------------
 MuxPilha:
 
-00 -> Ula
-01 -> regMemExt
-10 -> regDataReturn
-11 -> regArg
+000 -> Ula
+001 -> regMemExt
+010 -> regDataReturn
+011 -> regArg
+100 -> memMatriz
 
 -----------------
 MuxPC:

@@ -37,8 +37,11 @@ signal reset_ctrl   : std_logic;
 signal adder_ctrl   : std_logic;
 signal regArg_ctrl, regComp_ctrl, regEnd_ctrl, regInstr_ctrl, regOp1_ctrl, regOp2_ctrl, muxPc_ctrl, muxTos_ctrl  : std_logic;
 signal regOverflow_ctrl, regJump_ctrl, regPc_ctrl, regTos_ctrl, regTosFuncao_ctrl, regDataReturn_ctrl : std_logic;
+signal memMatriz_ctrl, regOpMatriz_ctrl, muxMatriz1_ctrl, muxMatriz2_ctrl, muxMemExt_ctrl, regAddr_matriz_ctrl, regFlag_ctrl, regChave_ctrl : std_logic;
+signal memFlag_ctrl : std_logic_vector(1 downto 0);
 signal pilha_ctrl, pilhaFuncao_ctrl, pilhaRetorno_ctrl, memExt_ctrl : std_logic;
-signal regMemExt_ctrl, regPilha_ctrl, muxOp1_ctrl, muxOp2_ctrl, muxPilha_ctrl    : std_logic_vector(1 downto 0);
+signal regMemExt_ctrl, regPilha_ctrl, muxOp1_ctrl, muxOp2_ctrl    : std_logic_vector(1 downto 0);
+signal muxPilha_ctrl    : std_logic_vector(2 downto 0);
 signal ula_ctrl : std_logic_vector((ULA_CTRL_WIDTH-1) downto 0);
 signal regError_ctrl    : std_logic;
 signal w_regError_in, w_regError_out    : std_logic_vector((DATA_WIDTH-1) downto 0);
@@ -46,6 +49,9 @@ signal w_regError_in, w_regError_out    : std_logic_vector((DATA_WIDTH-1) downto
 signal w_memExt_in, w_memExt_out    : std_logic_vector((DATA_WIDTH-1) downto 0);
 -- memInstr
 signal w_memInstr_fullWord : std_logic_vector((INSTRUCTION_WIDTH-1) downto 0);
+-- memMatriz
+signal w_memMatriz_out  : std_logic_vector((DATA_WIDTH-1) downto 0);
+signal w_memMatriz_addr : std_logic_vector((ADDR_WIDTH-1) downto 0);
 -- muxPilha
 signal w_muxPilha_in_01 : std_logic_vector((DATA_WIDTH-1) downto 0);         -- receive 8 bits from the external memory
 signal w_muxPilha_out   : std_logic_vector((DATA_WIDTH-1) downto 0);
@@ -53,6 +59,8 @@ signal w_muxPilha_out   : std_logic_vector((DATA_WIDTH-1) downto 0);
 signal w_pilha_in, w_pilha_out  : std_logic_vector((DATA_WIDTH-1) downto 0);
 -- pilhaFuncao // pilhaRetorno
 signal w_pilhaFuncao_out, w_pilhaRetorno_out    : std_logic_vector((ADDR_WIDTH-1) downto 0);
+-- regAddr_matriz
+signal w_regAddr_matriz_out     : std_logic_vector((ADDR_WIDTH-1) downto 0);
 -- regArg
 signal w_regArg_in, w_regArg_out    : std_logic_vector((DATA_WIDTH-1) downto 0);
 -- regComp
@@ -66,6 +74,8 @@ signal w_regInstr_in, w_regInstr_out    : std_logic_vector((DATA_WIDTH-1) downto
 signal w_regJump_out    : std_logic_vector((ADDR_MAX_WIDTH-1) downto 0);
 -- regOp1
 signal w_regOp1_out : std_logic_vector((ADDR_MAX_WIDTH-1) downto 0);
+-- regOpMatriz
+signal w_regOpMatriz_out    : std_logic_vector((DATA_WIDTH-1) downto 0);
 -- regOp2
 signal w_regOp2_out : std_logic_vector((ADDR_MAX_WIDTH-1) downto 0);
 -- regOverflow
@@ -81,6 +91,8 @@ signal w_regTos_out  : std_logic_vector((ADDR_WIDTH-1) downto 0);
 signal w_regTos_in   : std_logic_vector((ADDR_MAX_WIDTH-1) downto 0);
 -- regTosFuncao
 signal w_regTosFuncao_in, w_regTosFuncao_out    : std_logic_vector((DATA_WIDTH-1) downto 0);
+-- somador
+signal w_somador_in1, w_somador_in2, w_somador_out  : std_logic_vector((ADDR_WIDTH-1) downto 0);
 -- ula
 signal w_ula_out_result : std_logic_vector((ADDR_MAX_WIDTH-1) downto 0);
 signal w_ula_out_comp   : std_logic;
@@ -136,7 +148,7 @@ component control is
 		sel_muxTos				: out std_logic;
         sel_MuxOp1				: out std_logic_vector(1 downto 0);
         sel_MuxOp2				: out std_logic_vector(1 downto 0);
-        sel_MuxPilha			: out std_logic_vector(1 downto 0);
+        sel_MuxPilha			: out std_logic_vector(2 downto 0);
         -- arithmetic
         sel_soma_sub			: out std_logic;
         sel_ula					: out std_logic_vector((ULA_CTRL_WIDTH-1) downto 0)
@@ -258,6 +270,34 @@ component mux_4_1 is
         data_out    : out std_logic_vector((DATA_WIDTH_OUT-1) downto 0)
     );
 end component;
+
+component mux_8_1 is
+    generic
+    (
+        DATA_WIDTH_IN_1     : natural;
+        DATA_WIDTH_IN_2     : natural;
+        DATA_WIDTH_IN_3     : natural;
+        DATA_WIDTH_IN_4     : natural;
+        DATA_WIDTH_IN_5     : natural;
+        DATA_WIDTH_IN_6     : natural;
+        DATA_WIDTH_IN_7     : natural;
+        DATA_WIDTH_IN_8     : natural;
+        DATA_WIDTH_OUT      : natural
+    );
+    port
+    (
+        sel_in      : in std_logic_vector(2 downto 0);
+        data_in_1   : in std_logic_vector((DATA_WIDTH_IN_1-1) downto 0);
+        data_in_2   : in std_logic_vector((DATA_WIDTH_IN_2-1) downto 0);
+        data_in_3   : in std_logic_vector((DATA_WIDTH_IN_3-1) downto 0);
+        data_in_4   : in std_logic_vector((DATA_WIDTH_IN_4-1) downto 0);
+        data_in_5   : in std_logic_vector((DATA_WIDTH_IN_5-1) downto 0);
+        data_in_6   : in std_logic_vector((DATA_WIDTH_IN_6-1) downto 0);
+        data_in_7   : in std_logic_vector((DATA_WIDTH_IN_7-1) downto 0);
+        data_in_8   : in std_logic_vector((DATA_WIDTH_IN_8-1) downto 0);
+        data_out    : out std_logic_vector((DATA_WIDTH_OUT-1) downto 0)
+    );
+end component;
 -- ///////////////////////////////
 component memory is
 	generic
@@ -326,6 +366,22 @@ component arith_unit is
 		out_result		    : out std_logic_vector((DATA_WIDTH_IN_ULA-1) downto 0);
 		out_comp		    : out std_logic;
 		out_overflow	    : out std_logic
+	);
+end component;
+
+component somador is
+	generic
+	(
+		DATA_WIDTH_IN_1	: natural;
+		DATA_WIDTH_IN_2 : natural;
+		DATA_WIDTH_OUT	: natural
+	);
+
+	port
+	(
+		data_in_1			: in std_logic_vector((DATA_WIDTH_IN_1-1) downto 0);
+		data_in_2			: in std_logic_vector((DATA_WIDTH_IN_2-1) downto 0);
+		data_out			: out std_logic_vector((DATA_WIDTH_OUT-1) downto 0)
 	);
 end component;
 
@@ -595,13 +651,17 @@ begin
             data_out => w_ula_in_op2
         );
 
-    muxPilha  : mux_4_1
+    muxPilha  : mux_8_1
         generic map
         (
             DATA_WIDTH_IN_1 => ADDR_MAX_WIDTH,
             DATA_WIDTH_IN_2 => DATA_WIDTH,
             DATA_WIDTH_IN_3 => DATA_WIDTH,
             DATA_WIDTH_IN_4 => DATA_WIDTH,
+            DATA_WIDTH_IN_5 => DATA_WIDTH,
+            DATA_WIDTH_IN_6 => DATA_WIDTH,
+            DATA_WIDTH_IN_7 => DATA_WIDTH,
+            DATA_WIDTH_IN_8 => DATA_WIDTH,
             DATA_WIDTH_OUT => DATA_WIDTH
         )
         port map
@@ -611,6 +671,10 @@ begin
             data_in_2 => w_muxPilha_in_01,     -- regMemExt
             data_in_3 => w_regDataReturn_out,
             data_in_4 => w_regArg_out,
+            data_in_5 => w_memMatriz_out,
+            data_in_6 => std_logic_vector(to_unsigned(0, DATA_WIDTH)),
+            data_in_7 => std_logic_vector(to_unsigned(0, DATA_WIDTH)),
+            data_in_8 => std_logic_vector(to_unsigned(0, DATA_WIDTH)),
             data_out => w_muxPilha_out
         );
 
@@ -643,6 +707,36 @@ begin
             data_in_1 => w_ula_out_result,
             data_in_2 => w_pilhaRetorno_out,
             data_out => w_regTos_in
+        );
+
+    muxMatrix1   : mux_2_1
+        generic map
+        (
+            DATA_WIDTH_IN_1 => DATA_WIDTH,
+            DATA_WIDTH_IN_2 => DATA_WIDTH,
+            DATA_WIDTH_OUT => ADDR_WIDTH
+        )
+        port map
+        (
+            sel_in => muxMatriz1_ctrl,
+            data_in_1 => w_regOpMatriz_out,
+            data_in_2 => std_logic_vector(to_unsigned(1, DATA_WIDTH)),
+            data_out => w_somador_in1
+        );
+
+    muxMatrix2   : mux_2_1
+        generic map
+        (
+            DATA_WIDTH_IN_1 => DATA_WIDTH,
+            DATA_WIDTH_IN_2 => ADDR_WIDTH,
+            DATA_WIDTH_OUT => ADDR_WIDTH
+        )
+        port map
+        (
+            sel_in => muxMatriz2_ctrl,
+            data_in_1 => w_regPilha_out,
+            data_in_2 => w_regAddr_matriz_out,
+            data_out => w_somador_in2
         );
 
 --=========================================================
@@ -703,6 +797,21 @@ begin
             addr_in => w_regEnd_out,
             data_in => w_memExt_in,
             data_out => w_memExt_out
+        );
+
+    memMatriz   : memory
+        generic map
+        (
+            DATA_WIDTH_IN => DATA_WIDTH,
+            ADDR_WIDTH_IN => ADDR_WIDTH
+        )
+        port map
+        (
+            clk => clk_geral,
+            ctrl_in => memMatriz_ctrl,
+            addr_in => w_memMatriz_addr,
+            data_in => w_regPilha_out,
+            data_out => w_memMatriz_out
         );
 
 --=========================================================
@@ -807,5 +916,19 @@ begin
             out_result => w_ula_out_result,
             out_comp => w_ula_out_comp,
             out_overflow => w_regOverflow_in
+        );
+
+    somadorMatriz : somador
+        generic map
+        (
+            DATA_WIDTH_IN_1 => ADDR_WIDTH,
+            DATA_WIDTH_IN_2 => ADDR_WIDTH,
+            DATA_WIDTH_OUT => ADDR_WIDTH
+        )
+        port map
+        (
+            data_in_1 => w_somador_in1,
+            data_in_2 => w_somador_in2,
+            data_out => w_somador_out
         );
 end arc;
