@@ -55,15 +55,19 @@ entity control is
         sel_MuxPilha			: out std_logic_vector(1 downto 0);
         -- arithmetic
         sel_soma_sub			: out std_logic;
-        sel_ula					: out std_logic_vector((ULA_CTRL_WIDTH_IN-1) downto 0)
-
+        sel_ula					: out std_logic_vector((ULA_CTRL_WIDTH_IN-1) downto 0);
+		-- signals for SoC
+		sStart					: in std_logic;			-- faz com que a ME saia do estado de aguardar
+		ack_end					: in std_logic;			-- deve ser recebido após o sinal de start ser desligado
+		sEnd					: out std_logic;		-- ativa no estado s_wait e é desativado assim que receber um ack
+		errorAlert				: out std_logic
 	);
 end entity;
 
 architecture arc_control of control is
 
 -- lc (LOAD_CONST), lf (LOAD_FAST), sf (STORE_FAST), co (COMPARE_OP), ja (JUMP_ABSOLUTE), jf (JUMP_FORWARD), b (BINARY_), pj_stay (FICA!), pj_jump (PULA!), pj_end (FINALIZA)
-type state_type is (first, AUX, AUX_0, AUX_1, error_1, error_2, error_3, u1, u2, u3_1, u4, u5, u6, cf1, cf2, cf3, cf4, cf5, cf6, cf7, lc1, lc2, lc3, lc4, lf1, lf2, lf3, lf4, lf5, lf6, lf7, lf8, b1, b2, b3, b4, b5_1, b5_2, b5_3, b5_4, b5_5, b5_6, b5_7, b6, b7, b8, sf1, sf2, sf3, sf4, sf5, sf6, sf7, sf8, co1, co2, co3, co4, co5, co6_1, co6_2, co6_3, co7, co8, co9, co10, co11, jf1, jf2, jf3, jf4, rv1, rv2, rv3, rv4, rv5, ja1, ja2, ja3, ja4, pj_FICA, pj_FICA2, pj_PULA1, pj_PULA2, pj_PULA3, pj_PULA4);
+type state_type is (first, last, s_wait, AUX, AUX_0, AUX_1, error_1, error_2, error_3, u1, u2, u3_1, u4, u5, u6, cf1, cf2, cf3, cf4, cf5, cf6, cf7, lc1, lc2, lc3, lc4, lf1, lf2, lf3, lf4, lf5, lf6, lf7, lf8, b1, b2, b3, b4, b5_1, b5_2, b5_3, b5_4, b5_5, b5_6, b5_7, b6, b7, b8, sf1, sf2, sf3, sf4, sf5, sf6, sf7, sf8, co1, co2, co3, co4, co5, co6_1, co6_2, co6_3, co7, co8, co9, co10, co11, jf1, jf2, jf3, jf4, rv1, rv2, rv3, rv4, rv5, ja1, ja2, ja3, ja4, pj_FICA, pj_FICA2, pj_PULA1, pj_PULA2, pj_PULA3, pj_PULA4);
 signal atual 	: state_type;
 -- signal signal_one	: integer	:= 1;
 -- signal signal_zero	: integer := 0;
@@ -80,10 +84,10 @@ begin
 	saida_reset <= reset_in;
 
 
-	process(clk, reset_in, entrada_regComp, sEntrada_regArg, sEntrada_regInstr, entrada_regOverflow, entrada_regTos, errorCode)
+	process(clk, ack_end, sStart, reset_in, entrada_regComp, sEntrada_regArg, sEntrada_regInstr, entrada_regOverflow, entrada_regTos, errorCode)
 	begin
 		if(reset_in='1') then
-			atual <= first;
+			atual <= s_wait;
 		elsif(rising_edge(clk)) then
 			case atual is
 				when AUX_0 =>           -- estado zerado simplesmente para aguardar quando for preciso
@@ -105,7 +109,7 @@ begin
 						when "00000010" => 		-- COMPARE_OP
 							atual <= co2;
 						when others =>
-							atual <= first;
+							atual <= s_wait;
 					end case;
 				-----------------------------
 				when first =>
@@ -159,7 +163,7 @@ begin
 						when "01100001" =>		-- RETURN VALUE
 							atual <= rv1;
 						when "00000000" =>		-- ignorar opCode contendo somente zeros: significa que o programa acabou de executar
-							atual <= first;
+							atual <= last;
 						when others =>
 							errorCode <= std_logic_vector(to_unsigned(60, DATA_WIDTH_IN));
 							atual <= error_1;
@@ -173,10 +177,12 @@ begin
 				when error_3 =>
 					if(errorCode=std_logic_vector(to_unsigned(255, DATA_WIDTH_IN))) then
 						atual <= error_3;		-- loop infinito
+						errorAlert <= '1';
 					elsif(errorCode=std_logic_vector(to_unsigned(60, DATA_WIDTH_IN))) then
 						atual <= error_3;		-- loop inifinito
+						errorAlert <= '1';
 					else
-						atual <= first;
+						atual <= last;
 					end if;
 			-- ====================================
 			-- LOAD_CONST
@@ -187,7 +193,7 @@ begin
 				when lc3 =>
 					atual <= lc4;
 				when lc4 =>
-					atual <= first;
+					atual <= last;
 				-- ====================================
 				-- LOAD_FAST
 				when lf1 =>
@@ -205,7 +211,7 @@ begin
 				when lf7 =>
 					atual <= lf8;
 				when lf8 =>
-					atual <= first;
+					atual <= last;
 				-- ====================================
 				-- STORE_FAST
 				when sf1 =>
@@ -228,7 +234,7 @@ begin
 				when sf7 =>
 					atual <= sf8;
 				when sf8 =>
-					atual <= first;
+					atual <= last;
 				-- ====================================
 				-- BINARY_
 				when b1 =>
@@ -295,7 +301,7 @@ begin
 						atual <= b8;			-- continua o algoritmo que também vai incrementar PC
 					end if;
 				when b8 =>
-					atual <= first;
+					atual <= last;
 				-- ====================================
 				-- UNARY_
 				when u1 =>
@@ -314,7 +320,7 @@ begin
 				when u5 =>
 					atual <= u6;
 				when u6 =>
-					atual <= first;
+					atual <= last;
 				-- ====================================
 				-- COMPARE_OP
 				when co1 =>
@@ -355,7 +361,7 @@ begin
 				when co10 =>
 					atual <= co11;
 				when co11 =>
-					atual <= first;
+					atual <= last;
 				-- ====================================
 				-- JUMP_FORWARD
 				when jf1 =>
@@ -365,7 +371,7 @@ begin
 				when jf3 =>
 					atual <= jf4;
 				when jf4 =>
-					atual <= first;
+					atual <= last;
 				-- ====================================
 				-- JUMP_ABSOLUTE
 				when ja1 =>
@@ -375,13 +381,13 @@ begin
 				when ja3 =>
 					atual <= ja4;
 				when ja4 =>
-					atual <= first;
+					atual <= last;
 				-- ====================================
 				-- POP_JUMP_
 				when pj_FICA =>
 					atual <= pj_FICA2;
 				when pj_FICA2 =>
-					atual <= first;
+					atual <= last;
 				when pj_PULA1 =>
 					atual <= pj_PULA2;
 				when pj_PULA2 =>
@@ -389,7 +395,7 @@ begin
 				when pj_PULA3 =>
 					atual <= pj_PULA4;
 				when pj_PULA4 =>
-					atual <= first;
+					atual <= last;
 				-- ====================================
 				-- CALL_FUNCTION
 				when cf1 =>
@@ -405,7 +411,7 @@ begin
 				when cf6 =>
 					atual <= cf7;
 				when cf7 =>
-					atual <= first;
+					atual <= last;
 				-- ====================================
 				-- RETURN_VALUE
 				when rv1 =>
@@ -417,9 +423,22 @@ begin
 				when rv4 =>
 					atual <= rv5;
 				when rv5 =>
-					atual <= first;
+					atual <= last;
+				-- ====================================
+				when last =>
+					if(ack_end='1') then
+						atual <= s_wait;
+					else
+						atual <= last;
+					end if;
+				when s_wait =>
+					if(sStart='1') then
+						atual <= first;
+					else
+						atual <= s_wait;
+					end if;
 				when others =>
-					atual <= first;
+					atual <= s_wait;
 			end case;
 		end if;
 	end process;
@@ -427,10 +446,71 @@ begin
 	process(atual, sEntrada_regInstr, sEntrada_regArg, errorCode)
 	begin
 		case atual is
+			when last =>
+				sEnd <= '1';			-- ativa e aguarda por um ack
+				ctrl_regInstr <= '0';
+				ctrl_regArg <= '0';
+				-- -------------------------
+				ctrl_regPc <= '0';
+				ctrl_regOp1 <= '0';
+				ctrl_regOp2 <= '0';
+				ctrl_regComp <= '0';
+				ctrl_regOverflow <= '0';
+				ctrl_regTos <= '0';
+				ctrl_regEnd <= '0';
+				ctrl_regPilha <= "00";
+				ctrl_regMemExt <= "00";
+				ctrl_pilha <= '0';
+				ctrl_memExt <= '0';
+				sel_MuxOp1 <= "00";
+				sel_MuxOp2 <= "00";
+				sel_MuxPilha <= "00";
+				sel_Ula <= "0000";
+				sel_soma_sub <= '0';
+				sel_muxPc <= '0';
+				sel_muxTos <= '0';
+				ctrl_regTosFuncao <= '0';
+				ctrl_pilhaFuncao <= '0';
+				ctrl_regDataReturn <= '0';
+				ctrl_pilhaRetorno <= '0';
+				ctrl_regJump <= '0';
+				ctrl_regError <= '0';
+				regError_out <= "00000000";
+			when s_wait =>
+				sEnd <= '0';			-- desativado, aguardando o start
+				ctrl_regInstr <= '0';
+				ctrl_regArg <= '0';
+				-- -------------------------
+				ctrl_regPc <= '0';
+				ctrl_regOp1 <= '0';
+				ctrl_regOp2 <= '0';
+				ctrl_regComp <= '0';
+				ctrl_regOverflow <= '0';
+				ctrl_regTos <= '0';
+				ctrl_regEnd <= '0';
+				ctrl_regPilha <= "00";
+				ctrl_regMemExt <= "00";
+				ctrl_pilha <= '0';
+				ctrl_memExt <= '0';
+				sel_MuxOp1 <= "00";
+				sel_MuxOp2 <= "00";
+				sel_MuxPilha <= "00";
+				sel_Ula <= "0000";
+				sel_soma_sub <= '0';
+				sel_muxPc <= '0';
+				sel_muxTos <= '0';
+				ctrl_regTosFuncao <= '0';
+				ctrl_pilhaFuncao <= '0';
+				ctrl_regDataReturn <= '0';
+				ctrl_pilhaRetorno <= '0';
+				ctrl_regJump <= '0';
+				ctrl_regError <= '0';
+				regError_out <= "00000000";
 			when AUX_0 =>
 				ctrl_regInstr <= '0';
 				ctrl_regArg <= '0';
 				-- -------------------------
+				sEnd <= '0';
 				ctrl_regPc <= '0';
 				ctrl_regOp1 <= '0';
 				ctrl_regOp2 <= '0';
@@ -460,6 +540,7 @@ begin
 				ctrl_regInstr <= '0';
 				ctrl_regArg <= '0';
 				-- -------------------------
+				sEnd <= '0';
 				ctrl_regPc <= '0';
 				ctrl_regOp1 <= '0';
 				ctrl_regOp2 <= '0';
@@ -489,6 +570,7 @@ begin
 				ctrl_regInstr <= '1';
 				ctrl_regArg <= '1';
 				-- -------------------------
+				sEnd <= '0';
 				ctrl_regPc <= '0';
 				ctrl_regOp1 <= '0';
 				ctrl_regOp2 <= '0';
@@ -518,6 +600,7 @@ begin
 				ctrl_regInstr <= '0';
 				ctrl_regArg <= '0';
 				-- -------------------------
+				sEnd <= '0';
 				ctrl_regPc <= '0';
 				ctrl_regOp1 <= '0';
 				ctrl_regOp2 <= '0';
@@ -549,6 +632,7 @@ begin
 				sel_MuxOp2 <= "00";
 				sel_Ula <= "0110";
 				-- -------------------------
+				sEnd <= '0';
 				ctrl_regError <= '0';
 				ctrl_regInstr <= '0';
 				ctrl_regArg <= '0';
@@ -577,6 +661,7 @@ begin
 				regError_out <= errorCode;
 				ctrl_regPc <= '1';
 				-- -------------------------
+				sEnd <= '0';
 				sel_MuxOp1 <= "00";
 				sel_MuxOp2 <= "00";
 				sel_Ula <= "0110";
@@ -606,6 +691,7 @@ begin
 				regError_out <= errorCode;
 				ctrl_regPc <= '0';
 				-- -------------------------
+				sEnd <= '0';
 				sel_MuxOp1 <= "00";
 				sel_MuxOp2 <= "00";
 				sel_Ula <= "0110";
@@ -636,6 +722,7 @@ begin
 				sel_MuxPilha <= "11";
 				sel_Ula <= "0110";
 				-- -------------------------
+				sEnd <= '0';
 				ctrl_regPc <= '0';
 				ctrl_regInstr <= '0';
 				ctrl_regArg <= '0';
@@ -663,6 +750,7 @@ begin
 				ctrl_regTos <= '1';
 				ctrl_regPilha <= "10";
 				-- -------------------------
+				sEnd <= '0';
 				sel_MuxOp1 <= "00";
 				sel_MuxOp2 <= "01";
 				sel_MuxPilha <= "11";
@@ -696,6 +784,7 @@ begin
 				sel_MuxOp2 <= "00";
 				sel_Ula <= "0110";
 				-- -------------------------
+				sEnd <= '0';
 				sel_MuxPilha <= "11";
 				ctrl_regPc <= '0';
 				ctrl_regInstr <= '0';
@@ -721,6 +810,7 @@ begin
 				ctrl_pilha <= '0';
 				ctrl_regPc <= '1';
 				-- -------------------------
+				sEnd <= '0';
 				sel_MuxOp1 <= "00";
 				sel_MuxOp2 <= "00";
 				sel_Ula <= "0110";
@@ -752,6 +842,7 @@ begin
 				sel_MuxOp2 <= "00";
 				sel_Ula <= "0110";
 				-- -------------------------
+				sEnd <= '0';
 				ctrl_regInstr <= '0';
 				ctrl_regArg <= '0';
 				ctrl_regPc <= '0';
@@ -778,6 +869,7 @@ begin
 			when lf2 =>
 				ctrl_regPc <= '1';
 				-- -------------------------
+				sEnd <= '0';
 				sel_muxPc <= '0';
 				sel_MuxOp1 <= "00";
 				sel_MuxOp2 <= "00";
@@ -808,6 +900,7 @@ begin
 				ctrl_regPc <= '0';
 				ctrl_regJump <= '1';
 				-- -------------------------
+				sEnd <= '0';
 				sel_muxPc <= '0';
 				sel_MuxOp1 <= "00";
 				sel_MuxOp2 <= "00";
@@ -837,6 +930,7 @@ begin
 				ctrl_regJump <= '0';
 				ctrl_regEnd <= '1';
 				-- -------------------------
+				sEnd <= '0';
 				ctrl_regPc <= '0';
 				sel_muxPc <= '0';
 				sel_MuxOp1 <= "00";
@@ -870,6 +964,7 @@ begin
 				sel_MuxOp2 <= "01";
 				sel_Ula <= "0110";
 				-- -------------------------
+				sEnd <= '0';
 				ctrl_regJump <= '0';
 				ctrl_regPc <= '0';
 				sel_muxPc <= '0';
@@ -896,6 +991,7 @@ begin
 				ctrl_regPilha <= "10";
 				ctrl_regTos <= '1';
 				-- -------------------------
+				sEnd <= '0';
 				sel_MuxPilha <= "01";
 				sel_MuxOp1 <= "00";
 				sel_MuxOp2 <= "01";
@@ -929,6 +1025,7 @@ begin
 				sel_MuxOp2 <= "00";
 				sel_Ula <= "0110";
 				-- -------------------------
+				sEnd <= '0';
 				ctrl_regMemExt <= "00";
 				sel_MuxPilha <= "01";
 				ctrl_regEnd <= '0';
@@ -953,6 +1050,7 @@ begin
 				ctrl_pilha <= '0';
 				ctrl_regPc <= '1';
 				-- -------------------------
+				sEnd <= '0';
 				sel_muxPc <= '0';
 				sel_MuxOp1 <= "00";
 				sel_MuxOp2 <= "00";
@@ -984,6 +1082,7 @@ begin
 				sel_MuxOp2 <= "00";
 				sel_Ula <= "0110";
 				-- -------------------------
+				sEnd <= '0';
 				ctrl_regInstr <= '0';
 				ctrl_regArg <= '0';
 				ctrl_regPc <= '0';
@@ -1010,6 +1109,7 @@ begin
             when sf2 =>
 				ctrl_regPc <= '1';
 				-- -------------------------
+				sEnd <= '0';
 				sel_muxPc <= '0';
 				sel_MuxOp1 <= "00";
 				sel_MuxOp2 <= "00";
@@ -1041,6 +1141,7 @@ begin
 				ctrl_regJump <= '1';
 				ctrl_regPilha <= "01";
 				-- -------------------------
+				sEnd <= '0';
 				sel_muxPc <= '0';
 				sel_MuxOp1 <= "00";
 				sel_MuxOp2 <= "00";
@@ -1071,6 +1172,7 @@ begin
 				ctrl_regEnd <= '1';
 				ctrl_regMemExt <= "10";
 				-- -------------------------
+				sEnd <= '0';
 				ctrl_regPc <= '0';
 				sel_muxPc <= '0';
 				sel_MuxOp1 <= "00";
@@ -1103,6 +1205,7 @@ begin
 				sel_MuxOp2 <= "01";
 				sel_Ula <= "0111";
 				-- -------------------------
+				sEnd <= '0';
 				ctrl_regTos <= '0';
 				ctrl_regJump <= '0';
 				ctrl_regPilha <= "00";
@@ -1127,6 +1230,7 @@ begin
 				ctrl_memExt <= '0';
 				ctrl_regTos <= '1';
 				-- -------------------------
+				sEnd <= '0';
 				ctrl_regEnd <= '0';
 				ctrl_regMemExt <= "00";
 				sel_muxTos <= '0';
@@ -1159,6 +1263,7 @@ begin
 				sel_Ula <= "0110";
 				sel_muxPc <= '0';
 				-- -------------------------
+				sEnd <= '0';
 				ctrl_memExt <= '0';
 				ctrl_regEnd <= '0';
 				ctrl_regMemExt <= "00";
@@ -1184,6 +1289,7 @@ begin
             when sf8 =>
 				ctrl_regPc <= '1';
 				-- -------------------------
+				sEnd <= '0';
 				ctrl_regTos <= '0';
 				sel_MuxOp1 <= "00";
 				sel_MuxOp2 <= "00";
@@ -1217,6 +1323,7 @@ begin
 				sel_MuxOp2 <= "01";
 				sel_Ula <= "0111";
 				-- -------------------------
+				sEnd <= '0';
 				ctrl_regInstr <= '0';
 				ctrl_regArg <= '0';
 				ctrl_regPc <= '0';
@@ -1244,6 +1351,7 @@ begin
 				ctrl_regOp1 <= '1';
 				ctrl_regTos <= '1';
 				-- -------------------------
+				sEnd <= '0';
 				ctrl_regOp2 <= '0';
 				sel_muxTos <= '0';
 				sel_MuxOp1 <= "00";
@@ -1273,6 +1381,7 @@ begin
 				ctrl_regOp1 <= '0';
 				ctrl_regTos <= '0';
 				-- -------------------------
+				sEnd <= '0';
 				ctrl_regOp2 <= '0';
 				sel_muxTos <= '0';
 				sel_MuxOp1 <= "00";
@@ -1331,6 +1440,7 @@ begin
 				sel_MuxPilha <= "00";
 				sel_Ula <= "0000";
 				-- -------------------------
+sEnd <= '0';
 				ctrl_regPilha <= "00";
 				sel_MuxOp1 <= "11";
 				sel_MuxOp2 <= "11";
@@ -1360,6 +1470,7 @@ begin
 				sel_MuxPilha <= "00";
 				sel_Ula <= "0001";
 				-- -------------------------
+sEnd <= '0';
 				ctrl_regPilha <= "00";
 				sel_MuxOp1 <= "11";
 				sel_MuxOp2 <= "11";
@@ -1389,6 +1500,7 @@ begin
 				sel_MuxPilha <= "00";
 				sel_Ula <= "0010";
 				-- -------------------------
+sEnd <= '0';
 				ctrl_regPilha <= "00";
 				sel_MuxOp1 <= "11";
 				sel_MuxOp2 <= "11";
@@ -1418,6 +1530,7 @@ begin
 				sel_MuxPilha <= "00";
 				sel_Ula <= "0011";
 				-- -------------------------
+sEnd <= '0';
 				ctrl_regPilha <= "00";
 				sel_MuxOp1 <= "11";
 				sel_MuxOp2 <= "11";
@@ -1447,6 +1560,7 @@ begin
 				sel_MuxPilha <= "00";
 				sel_Ula <= "1101";
 				-- -------------------------
+sEnd <= '0';
 				ctrl_regPilha <= "00";
 				sel_MuxOp1 <= "11";
 				sel_MuxOp2 <= "11";
@@ -1476,6 +1590,7 @@ begin
 				sel_MuxPilha <= "00";
 				sel_Ula <= "1110";
 				-- -------------------------
+sEnd <= '0';
 				ctrl_regPilha <= "00";
 				sel_MuxOp1 <= "11";
 				sel_MuxOp2 <= "11";
@@ -1505,6 +1620,7 @@ begin
 				sel_MuxPilha <= "00";
 				sel_Ula <= "1111";
 				-- -------------------------
+sEnd <= '0';
 				ctrl_regPilha <= "00";
 				sel_MuxOp1 <= "11";
 				sel_MuxOp2 <= "11";
@@ -1533,6 +1649,7 @@ begin
 				ctrl_regPilha <= "10";
 				ctrl_regOverflow <= '1';
 				-- -------------------------
+sEnd <= '0';
 				ctrl_regOp2 <= '0';
 				sel_MuxPilha <= "00";
 				if(sEntrada_regInstr="00100000") then		-- sum
@@ -1583,6 +1700,7 @@ begin
 				sel_MuxOp1 <= "00";
 				sel_MuxOp2 <= "00";
 				-- -------------------------
+sEnd <= '0';
 				ctrl_regOp2 <= '0';
 				sel_MuxPilha <= "00";
 				ctrl_regOp1 <= '0';
@@ -1607,6 +1725,7 @@ begin
 				ctrl_pilha <= '0';
 				ctrl_regPc <= '1';
 				-- -------------------------
+sEnd <= '0';
 				ctrl_regPilha <= "00";
 				ctrl_regOverflow <= '0';
 				sel_muxPc <= '0';
@@ -1637,6 +1756,7 @@ begin
 				ctrl_regArg <= '0';
 				ctrl_regPilha <= "01";
 				-- -------------------------
+sEnd <= '0';
 				ctrl_regPc <= '0';
 				ctrl_regOp1 <= '0';
 				ctrl_regOp2 <= '0';
@@ -1666,6 +1786,7 @@ begin
 				ctrl_regOp1 <= '1';
 				sel_MuxOp1 <= "11";
 				-- -------------------------
+sEnd <= '0';
 				ctrl_regInstr <= '0';
 				ctrl_regArg <= '0';
 				ctrl_regPc <= '0';
@@ -1695,6 +1816,7 @@ begin
 				sel_MuxPilha <= "00";
 				sel_Ula <= "1100";
 				-- -------------------------
+sEnd <= '0';
 				sel_MuxOp1 <= "11";
 				ctrl_regPilha <= "00";
 				ctrl_regInstr <= '0';
@@ -1722,6 +1844,7 @@ begin
 			when u4 =>
 				ctrl_regPilha <= "10";
 				-- -------------------------
+sEnd <= '0';
 				ctrl_regOp1 <= '0';
 				sel_MuxPilha <= "00";
 				sel_Ula <= "1100";
@@ -1756,6 +1879,7 @@ begin
 				sel_MuxOp2 <= "00";
 				sel_Ula <= "0110";
 				-- -------------------------
+sEnd <= '0';
 				ctrl_regOp1 <= '0';
 				sel_MuxPilha <= "00";
 				ctrl_regInstr <= '0';
@@ -1781,6 +1905,7 @@ begin
 				ctrl_pilha <= '0';
 				ctrl_regPc <= '1';
 				-- -------------------------
+sEnd <= '0';
 				sel_muxPc <= '0';
 				sel_MuxOp1 <= "00";
 				sel_MuxOp2 <= "00";
@@ -1814,6 +1939,7 @@ begin
 				sel_MuxPilha <= "01";
 				sel_Ula <= "0111";
 				-- -------------------------
+sEnd <= '0';
 				ctrl_regInstr <= '0';
 				ctrl_regArg <= '0';
 				ctrl_regPc <= '0';
@@ -1839,6 +1965,7 @@ begin
 				ctrl_regPilha <= "00";
 				ctrl_regTos <= '1';
 				-- -------------------------
+sEnd <= '0';
 				sel_muxTos <= '0';
 				sel_MuxOp1 <= "00";
 				sel_MuxOp2 <= "00";
@@ -1868,6 +1995,7 @@ begin
 				ctrl_regTos <= '0';
 				ctrl_regOp1 <= '1';
 				-- -------------------------
+sEnd <= '0';
 				ctrl_regPilha <= "00";
 				sel_muxTos <= '0';
 				sel_MuxOp1 <= "00";
@@ -1897,6 +2025,7 @@ begin
 				ctrl_regOp1 <= '0';
 				ctrl_regPilha <= "01";
 				-- -------------------------
+sEnd <= '0';
 				ctrl_regTos <= '0';
 				sel_muxTos <= '0';
 				sel_MuxOp1 <= "00";
@@ -1928,6 +2057,7 @@ begin
 				sel_MuxOp1 <= "11";
 				sel_MuxOp2 <= "11";
 				-- -------------------------
+sEnd <= '0';
 				ctrl_regOp1 <= '0';
 				ctrl_regTos <= '0';
 				sel_muxTos <= '0';
@@ -1955,6 +2085,7 @@ begin
 				ctrl_regOp2 <= '0';
 				sel_Ula <= "1010";
 				-- -------------------------
+sEnd <= '0';
 				ctrl_regPilha <= "00";
 				sel_MuxOp1 <= "11";
 				sel_MuxOp2 <= "11";
@@ -1984,6 +2115,7 @@ begin
 				ctrl_regOp2 <= '0';
 				sel_Ula <= "1011";
 				-- -------------------------
+sEnd <= '0';
 				ctrl_regPilha <= "00";
 				sel_MuxOp1 <= "11";
 				sel_MuxOp2 <= "11";
@@ -2013,6 +2145,7 @@ begin
 				ctrl_regOp2 <= '0';
 				sel_Ula <= "1001";
 				-- -------------------------
+sEnd <= '0';
 				ctrl_regPilha <= "00";
 				sel_MuxOp1 <= "11";
 				sel_MuxOp2 <= "11";
@@ -2041,6 +2174,7 @@ begin
             when co7 =>
 				ctrl_regComp <= '1';
 				-- -------------------------
+sEnd <= '0';
 				ctrl_regOp2 <= '0';
 				if(sEntrada_regArg="00011000") then		-- igual
 					sel_Ula <= "1001";
@@ -2080,6 +2214,7 @@ begin
 				sel_MuxOp2 <= "01";
 				sel_Ula <= "0111";
 				-- -------------------------
+sEnd <= '0';
 				ctrl_regOp2 <= '0';
 				ctrl_regPilha <= "00";
 				ctrl_regOp1 <= '0';
@@ -2106,6 +2241,7 @@ begin
 				ctrl_regComp <= '0';
 				ctrl_regTos <= '1';
 				-- -------------------------
+sEnd <= '0';
 				sel_muxTos <= '0';
 				sel_MuxOp1 <= "10";
 				sel_MuxOp2 <= "01";
@@ -2138,6 +2274,7 @@ begin
 				sel_MuxOp2 <= "00";
 				sel_Ula <= "0110";
 				-- -------------------------
+sEnd <= '0';
 				ctrl_regComp <= '0';
 				sel_muxTos <= '0';
 				ctrl_regPc <= '0';
@@ -2163,6 +2300,7 @@ begin
             when co11 =>
 				ctrl_regPc <= '1';
 				-- -------------------------
+sEnd <= '0';
 				ctrl_regTos <= '0';
 				sel_muxPc <= '0';
 				sel_MuxOp1 <= "00";
@@ -2195,6 +2333,7 @@ begin
 				sel_MuxOp2 <= "00";
 				sel_Ula <= "0110";
 				-- -------------------------
+sEnd <= '0';
 				ctrl_regInstr <= '0';
 				ctrl_regArg <= '0';
 				ctrl_regPc <= '0';
@@ -2221,6 +2360,7 @@ begin
             when jf2 =>
 				ctrl_regPc <= '1';
 				-- -------------------------
+sEnd <= '0';
 				sel_muxPc <= '0';
 				sel_MuxOp1 <= "00";
 				sel_MuxOp2 <= "00";
@@ -2255,6 +2395,7 @@ begin
 				sel_MuxOp2 <= "00";
 				sel_Ula <= "0000";
 				-- -------------------------
+sEnd <= '0';
 				ctrl_regInstr <= '0';
 				ctrl_regArg <= '0';
 				ctrl_regOp1 <= '0';
@@ -2280,6 +2421,7 @@ begin
 				ctrl_regJump <= '0';
 				ctrl_regPc <= '1';
 				-- -------------------------
+sEnd <= '0';
 				sel_muxPc <= '0';
 				sel_MuxOp1 <= "10";
 				sel_MuxOp2 <= "00";
@@ -2311,6 +2453,7 @@ begin
 				sel_MuxOp2 <= "00";
 				sel_Ula <= "0110";
 				-- -------------------------
+sEnd <= '0';
 				ctrl_regInstr <= '0';
 				ctrl_regArg <= '0';
 				ctrl_regPc <= '0';
@@ -2337,6 +2480,7 @@ begin
             when ja2 =>
 				ctrl_regPc <= '1';
 				-- -------------------------
+sEnd <= '0';
 				sel_muxPc <= '0';
 				sel_MuxOp1 <= "00";
 				sel_MuxOp2 <= "00";
@@ -2370,6 +2514,7 @@ begin
 				sel_MuxOp2 <= "00";
 				sel_Ula <= "0100";
 				-- -------------------------
+sEnd <= '0';
 				ctrl_regPc <= '0';
 				ctrl_regInstr <= '0';
 				ctrl_regArg <= '0';
@@ -2396,6 +2541,7 @@ begin
 				ctrl_regJump <= '0';
 				ctrl_regPc <= '1';
 				-- -------------------------
+sEnd <= '0';
 				sel_muxPc <= '0';
 				sel_MuxOp1 <= "10";
 				sel_MuxOp2 <= "00";
@@ -2427,6 +2573,7 @@ begin
 				sel_MuxOp2 <= "00";
 				sel_Ula <= "1000";
 				-- -------------------------
+sEnd <= '0';
 				ctrl_regInstr <= '0';
 				ctrl_regArg <= '0';
 				ctrl_regPc <= '0';
@@ -2453,6 +2600,7 @@ begin
 			when pj_FICA2 =>
 				ctrl_regPc <= '1';
 				-- -------------------------
+sEnd <= '0';
 				sel_muxPc <= '0';
 				sel_MuxOp1 <= "00";
 				sel_MuxOp2 <= "00";
@@ -2485,6 +2633,7 @@ begin
 				sel_MuxOp2 <= "00";
 				sel_Ula <= "0110";
 				-- -------------------------
+sEnd <= '0';
 				ctrl_regInstr <= '0';
 				ctrl_regArg <= '0';
 				ctrl_regPc <= '0';
@@ -2511,6 +2660,7 @@ begin
             when pj_PULA2 =>
 				ctrl_regPc <= '1';
 				-- -------------------------
+sEnd <= '0';
 				sel_muxPc <= '0';
 				sel_MuxOp1 <= "00";
 				sel_MuxOp2 <= "00";
@@ -2545,6 +2695,7 @@ begin
 				sel_MuxOp2 <= "00";
 				sel_Ula <= "0100";
 				-- -------------------------
+sEnd <= '0';
 				ctrl_regInstr <= '0';
 				ctrl_regArg <= '0';
 				ctrl_regOp1 <= '0';
@@ -2570,6 +2721,7 @@ begin
 				ctrl_regJump <= '0';
 				ctrl_regPc <= '1';
 				-- -------------------------
+sEnd <= '0';
 				sel_muxPc <= '0';
 				sel_MuxOp1 <= "10";
 				sel_MuxOp2 <= "00";
@@ -2602,6 +2754,7 @@ begin
 				sel_MuxOp2 <= "00";
 				sel_Ula <= "0110";
 				-- -------------------------
+sEnd <= '0';
 				ctrl_regInstr <= '0';
 				ctrl_regArg <= '0';
 				ctrl_regPc <= '0';
@@ -2628,6 +2781,7 @@ begin
 				ctrl_regPc <= '1';
 				ctrl_regTosFuncao <= '1';
 				-- -------------------------
+sEnd <= '0';
 				sel_soma_sub <= '0';
 				sel_muxPc <= '0';
 				sel_MuxOp1 <= "00";
@@ -2658,6 +2812,7 @@ begin
 				ctrl_regTosFuncao <= '0';
 				ctrl_regJump <= '1';
 				-- -------------------------
+sEnd <= '0';
 				sel_soma_sub <= '0';
 				sel_muxPc <= '0';
 				sel_MuxOp1 <= "00";
@@ -2689,6 +2844,7 @@ begin
 				sel_MuxOp2 <= "00";
 				sel_Ula <= "0110";
 				-- -------------------------
+sEnd <= '0';
 				ctrl_regPc <= '0';
 				ctrl_regTosFuncao <= '0';
 				sel_soma_sub <= '0';
@@ -2714,6 +2870,7 @@ begin
             when cf5 =>
 				ctrl_regPc <= '1';
 				-- -------------------------
+sEnd <= '0';
 				ctrl_regJump <= '0';
 				sel_muxPc <= '0';
 				sel_MuxOp1 <= "00";
@@ -2749,6 +2906,7 @@ begin
 				sel_MuxOp2 <= "00";
 				sel_Ula <= "0100";
 				-- -------------------------
+sEnd <= '0';
 				ctrl_regJump <= '0';
 				ctrl_regTosFuncao <= '0';
 				sel_soma_sub <= '0';
@@ -2774,6 +2932,7 @@ begin
 				ctrl_pilhaRetorno <= '0';
 				ctrl_regPc <= '1';
 				-- -------------------------
+sEnd <= '0';
 				sel_muxPc <= '0';
 				sel_MuxOp1 <= "10";
 				sel_MuxOp2 <= "00";
@@ -2803,6 +2962,7 @@ begin
 				sel_muxTos <= '1';
 				ctrl_regPilha <= "01";
 				-- -------------------------
+sEnd <= '0';
 				ctrl_regDataReturn <= '0';
 				ctrl_regInstr <= '0';
 				ctrl_regArg <= '0';
@@ -2834,6 +2994,7 @@ begin
 				ctrl_regTos <= '1';
 				sel_MuxPilha <= "10";
 				-- -------------------------
+sEnd <= '0';
 				sel_muxPc <= '1';
 				sel_muxTos <= '1';
 				ctrl_regInstr <= '0';
@@ -2866,6 +3027,7 @@ begin
 				sel_MuxOp2 <= "01";
 				sel_Ula <= "0110";
 				-- -------------------------
+sEnd <= '0';
 				sel_MuxPilha <= "10";
 				sel_muxPc <= '1';
 				ctrl_regInstr <= '0';
@@ -2890,6 +3052,7 @@ begin
 				ctrl_regTos <= '1';
 				ctrl_regPilha <= "10";
 				-- -------------------------
+sEnd <= '0';
 				ctrl_regPc <= '0';
 				sel_muxTos <= '0';
 				sel_soma_sub <= '1';
@@ -2920,6 +3083,7 @@ begin
 				ctrl_regPilha <= "00";
 				ctrl_pilha <= '1';
 				-- -------------------------
+sEnd <= '0';
 				ctrl_regPc <= '0';
 				sel_muxTos <= '0';
 				sel_soma_sub <= '1';

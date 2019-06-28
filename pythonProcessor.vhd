@@ -26,7 +26,9 @@ entity pythonProcessor is
         input_regInstr              : in std_logic_vector((DATA_WIDTH-1) downto 0);
         input_regArg                : in std_logic_vector((DATA_WIDTH-1) downto 0);
         input_regJump               : in std_logic_vector((INSTRUCTION_WIDTH-1) downto 0);
+        input_ackEnd                : in std_logic;
         output_regPc                : out std_logic_vector((ADDR_WIDTH-1) downto 0);
+        output_errorAlert           : out std_logic;
         -- -------------------------
         led_out                         : out std_logic_vector(3 downto 0)
     );
@@ -146,7 +148,12 @@ component control is
         sel_MuxPilha			: out std_logic_vector(1 downto 0);
         -- arithmetic
         sel_soma_sub			: out std_logic;
-        sel_ula					: out std_logic_vector((ULA_CTRL_WIDTH-1) downto 0)
+        sel_ula					: out std_logic_vector((ULA_CTRL_WIDTH-1) downto 0);
+		-- signals for SoC
+		sStart					: in std_logic;			-- faz com que a ME saia do estado de aguardar
+		ack_end					: in std_logic;			-- deve ser recebido após o sinal de start ser desligado
+		sEnd					: out std_logic;		-- ativa no estado s_wait e é desativado assim que receber um ack
+		errorAlert				: out std_logic
 	);
 end component;
 -- ////////////////////////////////
@@ -787,7 +794,12 @@ begin
             sel_MuxPilha => muxPilha_ctrl,
             -- arithmetic
             sel_soma_sub => adder_ctrl,
-            sel_ula => ula_ctrl
+            sel_ula => ula_ctrl,
+            -- signals SoC
+            sStart => input_statusStart,
+            sEnd => output_statusEnd,
+            ack_end => input_ackEnd,
+            errorAlert => output_errorAlert
         );
 
 --=========================================================
